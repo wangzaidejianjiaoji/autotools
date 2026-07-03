@@ -1,0 +1,21 @@
+{
+	"ImgW": 1920,
+	"ImgH": 1080,
+	"DetbyStatus": {
+		"real": [
+			{
+				"type": "mavic",
+				"conf": 0.690897,
+				"rect": [
+					1754,
+					648,
+					14,
+					11
+				],
+				"classification_ID": "bird",
+				"classification_prob": 0.9194942,
+				"comment": ""
+			}
+		]
+	}
+}

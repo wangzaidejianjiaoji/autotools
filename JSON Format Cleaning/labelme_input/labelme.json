@@ -1,0 +1,27 @@
+{
+    "version": "4.5.7",
+    "flags": {},
+    "shapes": [
+        {
+            "label": "drone",
+            "line_color": null,
+            "fill_color": null,
+            "points": [
+                [
+                    400.0,
+                    260.0
+                ],
+                [
+                    454.0,
+                    277.0
+                ]
+            ],
+            "shape_type": "rectangle",
+            "flags": {}
+        }
+    ],
+    "imagePath": "test.jpg",
+    "imageData": null,
+    "imageHeight": 1024,
+    "imageWidth": 1280
+}

@@ -1,0 +1,572 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web SSH 工具</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io@4.5.0/dist/socket.io.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .output-area {
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+        }
+        .command-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .server-card {
+            margin-bottom: 20px;
+        }
+        .status-bar {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status-connected {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status-disconnected {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .modal-body {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .btn-primary {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Web SSH 工具</h1>
+        
+        <!-- 服务器管理 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>服务器管理</h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServerModal">
+                        ➕ 添加服务器
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="serverList" class="row">
+                    <!-- 服务器卡片将通过 JavaScript 动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 自定义命令 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>自定义命令</h5>
+                    <div>
+                        <button class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addCommandModal">
+                            ➕ 添加命令
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="commandButtons" class="command-buttons">
+                    <!-- 命令按钮将通过 JavaScript 动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- SSH 连接区域 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>SSH 终端</h5>
+            </div>
+            <div class="card-body">
+                <!-- 状态条 -->
+                <div id="statusBar" class="status-bar status-disconnected mb-3">
+                    未连接到服务器
+                </div>
+                
+                <!-- 输出区域 -->
+                <div id="outputArea" class="output-area mb-3"></div>
+                
+                <!-- 命令输入 -->
+                <div class="input-group">
+                    <input type="text" id="commandInput" class="form-control" placeholder="输入命令...">
+                    <div class="input-group-text">
+                        <input type="checkbox" id="needPassword" aria-label="需要密码">
+                    </div>
+                    <button id="executeBtn" class="btn btn-primary">执行</button>
+                    <button id="terminateBtn" class="btn btn-danger">终止 (Ctrl+Z)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加服务器模态框 -->
+    <div class="modal fade" id="addServerModal" tabindex="-1" aria-labelledby="addServerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addServerModalLabel">添加服务器</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addServerForm">
+                        <div class="mb-3">
+                            <label for="serverName" class="form-label">服务器名称</label>
+                            <input type="text" class="form-control" id="serverName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverHost" class="form-label">主机地址</label>
+                            <input type="text" class="form-control" id="serverHost" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverPort" class="form-label">端口</label>
+                            <input type="number" class="form-control" id="serverPort" value="22" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverUser" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="serverUser" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serverPassword" class="form-label">密码</label>
+                            <input type="password" class="form-control" id="serverPassword" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveServerBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加命令模态框 -->
+    <div class="modal fade" id="addCommandModal" tabindex="-1" aria-labelledby="addCommandModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCommandModalLabel">添加自定义命令</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCommandForm">
+                        <div class="mb-3">
+                            <label for="commandName" class="form-label">按钮名称</label>
+                            <input type="text" class="form-control" id="commandName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="commandContent" class="form-label">命令内容</label>
+                            <input type="text" class="form-control" id="commandContent" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="commandNeedPassword">
+                            <label class="form-check-label" for="commandNeedPassword">需要密码 (sudo)</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveCommandBtn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 密码输入模态框 -->
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordModalLabel">输入密码</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="passwordPrompt">命令需要密码</p>
+                    <input type="password" id="passwordInput" class="form-control" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="submitPasswordBtn">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // WebSocket 连接
+        const socket = io();
+        
+        // 当前命令信息
+        let currentCommand = null;
+        let currentCommandNeedPassword = false;
+        
+        // 加载服务器列表
+        function loadServers() {
+            fetch('/api/servers')
+                .then(response => response.json())
+                .then(data => {
+                    const serverList = document.getElementById('serverList');
+                    serverList.innerHTML = '';
+                    
+                    data.forEach(server => {
+                        const serverCard = document.createElement('div');
+                        serverCard.className = 'col-md-4 mb-3';
+                        serverCard.innerHTML = `
+                            <div class="card server-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${server.name}</h5>
+                                    <p class="card-text">
+                                        <strong>主机:</strong> ${server.host}<br>
+                                        <strong>端口:</strong> ${server.port}<br>
+                                        <strong>用户名:</strong> ${server.username}
+                                    </p>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-primary btn-sm connect-btn" data-server="${server.name}">
+                                            连接
+                                        </button>
+                                        <button class="btn btn-danger btn-sm delete-server-btn" data-server="${server.name}">
+                                            删除
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        serverList.appendChild(serverCard);
+                    });
+                    
+                    // 绑定连接按钮事件
+                    document.querySelectorAll('.connect-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const server = this.getAttribute('data-server');
+                            connectToServer(server);
+                        });
+                    });
+                    
+                    // 绑定删除按钮事件
+                    document.querySelectorAll('.delete-server-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const server = this.getAttribute('data-server');
+                            if (confirm(`确定要删除服务器 ${server} 吗？`)) {
+                                deleteServer(server);
+                            }
+                        });
+                    });
+                });
+        }
+        
+        // 加载自定义命令
+        function loadCommands() {
+            fetch('/api/commands')
+                .then(response => response.json())
+                .then(data => {
+                    const commandButtons = document.getElementById('commandButtons');
+                    commandButtons.innerHTML = '';
+                    
+                    data.forEach(cmd => {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn btn-outline-secondary';
+                        btn.textContent = cmd.name;
+                        btn.addEventListener('click', function() {
+                            executeCommand(cmd.command, cmd.need_password);
+                        });
+                        commandButtons.appendChild(btn);
+                    });
+                });
+        }
+        
+        // 连接到服务器
+        function connectToServer(server) {
+            socket.emit('ssh_connect', { server: server });
+        }
+        
+        // 断开连接
+        function disconnectFromServer() {
+            socket.emit('ssh_disconnect');
+        }
+        
+        // 执行命令
+        function executeCommand(command, needPassword = false) {
+            if (needPassword) {
+                // 保存命令信息
+                currentCommand = command;
+                currentCommandNeedPassword = needPassword;
+                
+                // 显示密码输入框
+                document.getElementById('passwordPrompt').textContent = `命令 "${command}" 需要密码`;
+                const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
+                passwordModal.show();
+            } else {
+                socket.emit('ssh_command', {
+                    command: command,
+                    need_password: needPassword
+                });
+            }
+        }
+        
+        // 终止命令
+        function terminateCommand() {
+            socket.emit('ssh_terminate');
+        }
+        
+        // 删除服务器
+        function deleteServer(server) {
+            fetch(`/api/servers/${server}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadServers();
+                }
+            });
+        }
+        
+        // 删除命令
+        function deleteCommand(name) {
+            fetch(`/api/commands/${name}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadCommands();
+                }
+            });
+        }
+        
+        // WebSocket 事件处理
+        socket.on('ssh_status', function(data) {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.textContent = data.message;
+            
+            if (data.status === 'connected') {
+                statusBar.className = 'status-bar status-connected mb-3';
+            } else {
+                statusBar.className = 'status-bar status-disconnected mb-3';
+            }
+        });
+        
+        socket.on('ssh_output', function(data) {
+            const outputArea = document.getElementById('outputArea');
+            outputArea.innerHTML += data.content + '
+';
+            outputArea.scrollTop = outputArea.scrollHeight;
+        });
+        
+        // 绑定事件
+        window.onload = function() {
+            console.log('页面加载完成');
+            
+            // 加载服务器和命令
+            loadServers();
+            loadCommands();
+            
+            // 保存服务器按钮
+            const saveServerBtn = document.getElementById('saveServerBtn');
+            console.log('保存服务器按钮:', saveServerBtn);
+            
+            if (saveServerBtn) {
+                saveServerBtn.addEventListener('click', function() {
+                    console.log('保存服务器按钮被点击');
+                    const name = document.getElementById('serverName').value;
+                    const host = document.getElementById('serverHost').value;
+                    const port = document.getElementById('serverPort').value;
+                    const username = document.getElementById('serverUser').value;
+                    const password = document.getElementById('serverPassword').value;
+                    
+                    if (name && host && port && username && password) {
+                        console.log('发送请求添加服务器');
+                        fetch('/api/servers', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: name,
+                                host: host,
+                                port: parseInt(port),
+                                username: username,
+                                password: password
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('响应数据:', data);
+                            if (data.success) {
+                                loadServers();
+                                // 关闭模态框
+                                const addServerModal = document.getElementById('addServerModal');
+                                const modal = bootstrap.Modal.getInstance(addServerModal) || new bootstrap.Modal(addServerModal);
+                                modal.hide();
+                                // 清空表单
+                                document.getElementById('addServerForm').reset();
+                                alert('服务器添加成功！');
+                            } else {
+                                alert('添加失败: ' + (data.error || '未知错误'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('添加服务器失败:', error);
+                            alert('添加服务器失败，请检查控制台');
+                        });
+                    } else {
+                        alert('请填写所有必填字段');
+                    }
+                });
+            }
+            
+            // 保存命令按钮
+            const saveCommandBtn = document.getElementById('saveCommandBtn');
+            console.log('保存命令按钮:', saveCommandBtn);
+            
+            if (saveCommandBtn) {
+                saveCommandBtn.addEventListener('click', function() {
+                    console.log('保存命令按钮被点击');
+                    const name = document.getElementById('commandName').value;
+                    const content = document.getElementById('commandContent').value;
+                    const needPassword = document.getElementById('commandNeedPassword').checked;
+                    
+                    if (name && content) {
+                        console.log('发送请求添加命令');
+                        fetch('/api/commands', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: name,
+                                command: content,
+                                need_password: needPassword
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('响应数据:', data);
+                            if (data.success) {
+                                loadCommands();
+                                // 关闭模态框
+                                const addCommandModal = document.getElementById('addCommandModal');
+                                const modal = bootstrap.Modal.getInstance(addCommandModal) || new bootstrap.Modal(addCommandModal);
+                                modal.hide();
+                                // 清空表单
+                                document.getElementById('addCommandForm').reset();
+                                alert('命令添加成功！');
+                            } else {
+                                alert('添加失败: ' + (data.error || '未知错误'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('添加命令失败:', error);
+                            alert('添加命令失败，请检查控制台');
+                        });
+                    } else {
+                        alert('请填写所有必填字段');
+                    }
+                });
+            }
+            
+            // 执行按钮
+            const executeBtn = document.getElementById('executeBtn');
+            if (executeBtn) {
+                executeBtn.addEventListener('click', function() {
+                    const command = document.getElementById('commandInput').value;
+                    const needPassword = document.getElementById('needPassword').checked;
+                    if (command) {
+                        executeCommand(command, needPassword);
+                        document.getElementById('commandInput').value = '';
+                    }
+                });
+            }
+            
+            // 终止按钮
+            const terminateBtn = document.getElementById('terminateBtn');
+            if (terminateBtn) {
+                terminateBtn.addEventListener('click', terminateCommand);
+            }
+            
+            // 命令输入框回车
+            const commandInput = document.getElementById('commandInput');
+            if (commandInput) {
+                commandInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        executeBtn.click();
+                    }
+                });
+            }
+            
+            // Ctrl+Z 终止命令
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+                    e.preventDefault();
+                    terminateCommand();
+                }
+            });
+            
+            // 提交密码
+            const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+            if (submitPasswordBtn) {
+                submitPasswordBtn.addEventListener('click', function() {
+                    const password = document.getElementById('passwordInput').value;
+                    if (password) {
+                        socket.emit('ssh_command', {
+                            command: currentCommand,
+                            need_password: currentCommandNeedPassword,
+                            password_input: password
+                        });
+                        
+                        // 关闭模态框
+                        const passwordModal = document.getElementById('passwordModal');
+                        const modal = bootstrap.Modal.getInstance(passwordModal) || new bootstrap.Modal(passwordModal);
+                        modal.hide();
+                        
+                        // 清空密码输入
+                        document.getElementById('passwordInput').value = '';
+                        
+                        // 重置当前命令
+                        currentCommand = null;
+                        currentCommandNeedPassword = false;
+                    }
+                });
+            }
+            
+            // 密码输入框回车
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitPasswordBtn.click();
+                    }
+                });
+            }
+        };
+    </script>
+</body>
+</html>

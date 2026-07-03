@@ -1,0 +1,78 @@
+{
+    "version": "4.5.7",
+    "flags": {},
+    "shapes": [
+        {
+            "label": "drone",
+            "line_color": null,
+            "fill_color": null,
+            "points": [
+                [
+                    747.0,
+                    811.0
+                ],
+                [
+                    792.0,
+                    830.0
+                ]
+            ],
+            "shape_type": "rectangle",
+            "flags": {}
+        },
+        {
+            "label": "drone",
+            "line_color": null,
+            "fill_color": null,
+            "points": [
+                [
+                    745.0,
+                    809.0
+                ],
+                [
+                    789.0,
+                    827.0
+                ]
+            ],
+            "shape_type": "rectangle",
+            "flags": {}
+        },
+        {
+            "label": "drone",
+            "line_color": null,
+            "fill_color": null,
+            "points": [
+                [
+                    759.0,
+                    810.0
+                ],
+                [
+                    804.0,
+                    828.0
+                ]
+            ],
+            "shape_type": "rectangle",
+            "flags": {}
+        },
+        {
+            "label": "drone",
+            "line_color": null,
+            "fill_color": null,
+            "points": [
+                [
+                    763.0,
+                    813.0
+                ],
+                [
+                    808.0,
+                    831.0
+                ]
+            ],
+            "shape_type": "rectangle",
+            "flags": {}
+        }
+    ],
+    "imagePath": "test_input.jpg",
+    "imageData": null,
+    "imageHeight": 1024,
+    "imageWidth": 1280
+}
