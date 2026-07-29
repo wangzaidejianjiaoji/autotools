@@ -11,6 +11,9 @@ if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8')
     sys.path = [p for p in sys.path if 'hermes-agent' not in p]
 
+# 将 FiftyOne 数据库目录设置到 D 盘，避免 C 盘空间不足
+os.environ.setdefault('FIFTYONE_DIR', 'D:/fiftyone_data')
+
 import psutil
 import fiftyone as fo
 
@@ -307,16 +310,18 @@ def main():
         print(f"\n[{i}/{len(sub_datasets)}] 正在处理子数据集：{image_dir}")
 
         labels_data = None
-        if labelme_dir and labels_path:
-            labels_data = convert_labelme_dir_to_fiftyone(labelme_dir, labels_path)
-
-        if labels_data is None and labels_path and os.path.exists(labels_path):
+        # 优先使用已存在的 fiftyone_labels.json，避免重复转换
+        if labels_path and os.path.exists(labels_path):
             try:
                 with open(labels_path, 'r', encoding='utf-8') as f:
                     labels_data = json.load(f)
                 print(f"  已读取现有标签: {labels_path}")
             except Exception as e:
                 print(f"  读取标签文件失败: {e}")
+
+        # 仅当现有标签不存在或读取失败时才进行转换
+        if labels_data is None and labelme_dir and labels_path:
+            labels_data = convert_labelme_dir_to_fiftyone(labelme_dir, labels_path)
 
         print("  正在加载图片到数据集...")
         sub_dataset = fo.Dataset.from_dir(
