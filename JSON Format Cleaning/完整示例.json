@@ -1,0 +1,20 @@
+{
+  "图片标记样例": {
+    "文件名": "GR100_cb_building_day_sunny_2号楼_260725_50-150m_1-3zoom_huanyu_jpg_可见光_avata.json",
+    "内容": {
+      "device": "GR100",
+      "complexBg": "cb",
+      "bgType": "building",
+      "captureTime": "day",
+      "weather": "sunny",
+      "location": "2号楼",
+      "date": "260725",
+      "distance": "50-150m",
+      "zoom": "1-3zoom",
+      "lens": "huanyu",
+      "mediaType": "image",
+      "spectral": "可见光",
+      "targetType": "avata"
+    }
+  }
+}

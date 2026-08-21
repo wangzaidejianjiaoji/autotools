@@ -121,9 +121,18 @@ def convert_labelme_dir_to_fiftyone(labelme_dir, output_json_path=None):
 
     if output_json_path:
         output_dir = os.path.dirname(output_json_path)
-        if output_dir and not os.path.exists(output_dir):
-            os.makedirs(output_dir, exist_ok=True)
-        with open(output_json_path, 'w', encoding='utf-8') as f:
+        # 处理 Windows 超长路径限制
+        if sys.platform == 'win32' and output_dir and len(os.path.abspath(output_dir)) > 240:
+            check_dir = r'\\?\\' + os.path.abspath(output_dir)
+        else:
+            check_dir = output_dir
+        if output_dir and not os.path.exists(check_dir):
+            os.makedirs(check_dir, exist_ok=True)
+
+        write_path = output_json_path
+        if sys.platform == 'win32' and len(os.path.abspath(output_json_path)) > 240:
+            write_path = r'\\?\\' + os.path.abspath(output_json_path)
+        with open(write_path, 'w', encoding='utf-8') as f:
             json.dump(result, f, indent=2, ensure_ascii=False)
         print(f"  已保存转换结果: {output_json_path}")
 
@@ -174,6 +183,13 @@ def discover_sub_datasets(input_path, max_depth=3):
         image_files = [f for f in files if Path(f).suffix.lower() in image_exts]
 
         if not json_files:
+            continue
+
+        # 规范：同目录下必须至少有一张与某个 json 同名的图片，
+        # 才将该目录下所有 json 作为 labelme 标注进行转换
+        image_stems = {Path(f).stem for f in image_files}
+        if not any(Path(f).stem in image_stems for f in json_files):
+            print(f"  跳过：{root} 下没有与 json 同名的图片文件")
             continue
 
         # 此目录即为 labelme 标注目录

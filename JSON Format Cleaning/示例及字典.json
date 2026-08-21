@@ -1,0 +1,109 @@
+{
+  "图片标记样例": {
+    "文件名": "GR100_cb_building_day_sunny_2号楼_260725_50-150m_1-3zoom_huanyu_jpg_可见光_avata.json",
+    "内容": {
+      "device": "GR100",
+      "complexBg": "cb",
+      "bgType": "building",
+      "captureTime": "day",
+      "weather": "sunny",
+      "location": "2号楼",
+      "date": "260725",
+      "distance": "50-150m",
+      "zoom": "1-3zoom",
+      "lens": "huanyu",
+      "mediaType": "image",
+      "spectral": "可见光",
+      "targetType": "avata"
+    }
+  },
+  "视频标记样例": {
+    "文件名": "VAR300_cb_building_night_cloudy_XX地点比测_260722_1000m_46zoom_hope_MP4_可见光_小摩托.json",
+    "内容": {
+      "device": "VAR300",
+      "complexBg": "cb",
+      "bgType": "building",
+      "captureTime": "night",
+      "weather": "cloudy",
+      "location": "XX地点比测",
+      "date": "260722",
+      "distance": "1000m",
+      "zoom": "46zoom",
+      "lens": "hope",
+      "mediaType": "video",
+      "spectral": "可见光",
+      "targetType": "小摩托"
+    }
+  },
+
+  "说明": "标记 JSON 全字段穷举字典(参考 spec.json v1); 本文件为说明型文档, 非实际可用标记。实际使用时: 参照开头两个样例, 取各字段'示例'处的写法组成扁平 JSON, 文件名须与数据目录同名, 未知取值统一填 unknow",
+  "必填项": "共 13 项 = 13 段字段,以下字段全部为必填, 缺失任一项记 badmarker 异常",
+
+  "device": {
+    "中文名": "采集设备",
+    "可选值": { "GR100": "GR100 采集设备", "VAR300": "VAR300 采集设备", "unknow": "未知" },
+    "示例": "GR100"
+  },
+  "complexBg": {
+    "中文名": "复杂背景",
+    "可选值": { "cb": "复杂背景", "sky": "天空简单背景", "unknow": "未知" },
+    "示例": "cb"
+  },
+  "bgType": {
+    "中文名": "背景类型",
+    "可选值": { "building": "楼宇", "glass": "玻璃幕墙", "tree": "树木", "bridge": "桥梁", "mountain": "山体", "sky": "天空", "unknow": "未知" },
+    "示例": "building"
+  },
+  "captureTime": {
+    "中文名": "采集时间",
+    "可选值": { "day": "白天", "night": "夜晚", "unknow": "未知" },
+    "示例": "night"
+  },
+  "weather": {
+    "中文名": "天气",
+    "可选值": { "sunny": "晴天", "cloudy": "多云", "foggy": "雾天", "unknow": "未知" },
+    "示例": "sunny"
+  },
+  "location": {
+    "中文名": "采集位置",
+    "可选值": ["2号楼", "9号楼", "外采", "XX地点比测" , "unknow"],
+    "示例": "2号楼"
+  },
+  "date": {
+    "中文名": "年月日",
+    "格式": "YYMMDD",
+    "示例": "260725"
+  },
+  "distance": {
+    "中文名": "无人机距离范围",
+    "可选值": { "unknow": "未知" },
+    "格式": "<起>-<止>m 或 <数值>m",
+    "示例": "50-150m"
+  },
+  "zoom": {
+    "中文名": "倍率范围",
+    "可选值": { "unknow": "未知" },
+    "格式": "<起>-<止>zoom 或 <数值>zoom",
+    "示例": "1-3zoom"
+  },
+  "lens": {
+    "中文名": "采集使用镜头",
+    "可选值": { "hope": "可见光镜头(hope)", "hope_ir": "红外镜头(hope)", "hik": "海康可见光镜头", "huanyu": "可见光镜头(huanyu)", "huanyu_ir": "红外镜头(huanyu)", "unknow": "未知" },
+    "示例": "huanyu"
+  },
+  "mediaType": {
+    "中文名": "媒体类型",
+    "可选值": { "image": "图片(jpg)", "video": "视频(MP4)"},
+    "示例": "image"
+  },
+  "spectral": {
+    "中文名": "光类型",
+    "可选值": ["可见光", "红外"],
+    "示例": "可见光"
+  },
+  "targetType": {
+    "中文名": "目标类型",
+    "可选值": { "mavic": "大疆御", "autel": "道通", "avata": "大疆阿凡达", "m400": "大疆M400", "fpv": "穿越机", "phantom": "大疆精灵", "mini": "大疆Mini", "air": "大疆Air", "inspire": "大疆悟(Inspire)", "matrice": "大疆经纬(Matrice)", "neo": "大疆Neo", "flip": "大疆Flip", "evo": "道通EVO", "fimi": "飞米", "hubsan": "哈博森", "potensic": "博坦", "speckle": "斑点", "小摩托": "小摩托", "固定翼": "固定翼", "同轴": "同轴", "unknow": "未知" },
+    "示例": "avata"
+  }
+}
