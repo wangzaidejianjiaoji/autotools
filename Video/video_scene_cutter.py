@@ -1,7 +1,28 @@
 """
-视频场景切分脚本
-功能：识别视频画面中的 conf 值，当 conf=0 时切分视频片段（前10秒到后3秒）
-日期：2026-03-18
+作用:
+    视频场景切分脚本。识别视频画面中央区域中的 conf 数值，当检测到 conf=0 时，
+    以该时刻为中心切分出一段视频片段（默认前 10 秒到后 3 秒），输出到指定目录，
+    用于自动提取"置信度为 0"等异常或切换场景的片段。
+
+用法:
+    python video_scene_cutter.py
+    启动后按提示依次输入：
+        1) 视频文件路径或包含视频的目录路径
+        2) 输出目录（直接回车使用默认目录）
+        3) conf=0 之前截取多少秒（默认 10 秒）
+        4) conf=0 之后截取多少秒（默认 3 秒）
+
+关键参数:
+    VIDEO_EXTENSIONS / video_extensions: 目录模式下受支持的视频格式列表。
+    input_dir:          交互输入，单个视频文件或目录路径。
+    output_path:        切分片段输出目录；未指定时单文件用 父目录/cut_segments，
+                        目录批量用 输入目录/cut_segments。
+    pre_seconds:        conf=0 之前保留的秒数（默认 10）。
+    post_seconds:       conf=0 之后保留的秒数（默认 3）。
+    sample_interval:    find_conf_zero_timestamps 中每隔多少帧做一次 OCR 采样（默认 30）。
+    extract_conf_from_frame(): 从单帧中央区域 OCR 并正则提取 conf 数值。
+    find_conf_zero_timestamps(): 扫描整个视频，收集 conf=0 出现的时间点。
+    cut_video_segment(): 按给定起止秒数从原视频写入新片段（mp4v）。
 """
 
 import os

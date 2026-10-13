@@ -1,6 +1,19 @@
-import os
-import sys
-from collections import defaultdict
+"""
+作用：扫描指定目录，将所有文件按"主文件名（去扩展名）"分组，
+     删除那些"同组只有 1 个文件"、即没有同名同主名伙伴的孤立文件。
+
+用法：
+    python auto_delete_single_files.py [目录路径]
+    # 示例：python auto_delete_single_files.py "D:/data/train"
+    # 不传参时，程序会交互式要求输入路径（支持拖拽带引号路径）。
+
+关键参数：
+    - input_path（sys.argv[1]）：要处理的目录路径，仅扫描该目录直接包含的文件，
+      不递归进子目录。
+    - 分组规则：以"文件名去后缀"为 key 分组，例如 a.jpg、a.json 被视作同一组。
+    - 删除条件：某组内文件数 == 1 的全部删除；>=2 的整组保留。
+    - 确认机制：列出待删文件后需输入 y 确认才会执行删除。
+"""
 
 
 def delete_single_files(input_path):

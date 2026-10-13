@@ -1,5 +1,17 @@
-import json
-import os
+"""
+作用：将视频预测 JSON（键为帧号字符串，值为 [[x1,y1,x2,y2], ...] 列表）逐帧
+      转换为 labelme 格式 json，每帧一个 .jpg 同名 json；仅在目标目录存在对应 jpg
+      时才生成 json。
+用法：python video_pre.json_to_labelme.json_format.py
+      运行后按提示输入输入 JSON 路径和生成目标目录。
+关键参数：
+  - input_json_path (交互输入)：视频预测 JSON，键为帧号，值为 bbox 列表
+  - output_dir (交互输入)：生成的 labelme json 与 jpg 同目录
+  - base_name：取输入 json 的文件名（自动去掉 _ostrack 后缀）
+  - 输出命名：<base_name>_<5位帧号>.json / .jpg；imageHeight=1024，imageWidth=1280 硬编码
+  - label：固定为 "drone"，shape_type=rectangle
+  - 跳过：若目标目录中对应 .jpg 不存在则跳过该帧
+"""
 
 def convert_json_to_labelme(input_json_path, output_dir):
     # 检查输入文件是否存在

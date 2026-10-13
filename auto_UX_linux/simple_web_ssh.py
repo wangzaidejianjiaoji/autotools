@@ -2,8 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
-简单的 Web SSH 工具
-让同事可以通过浏览器访问操作 SSH 命令
+作用：基于 Flask + flask-socketio 的简易 Web SSH 工具。
+     通过浏览器访问即可选择服务器、建立 SSH 连接、执行命令，
+     自带服务器/自定义命令的增删改页面，支持 sudo 密码弹窗与 Ctrl+Z 终止。
+
+用法：
+    pip install flask flask-socketio eventlet paramiko
+    python simple_web_ssh.py
+    浏览器打开 http://<本机IP>:5000/
+
+关键参数：
+    - SERVERS_CONFIG_FILE = "servers.json"     —— 服务器列表（持久化到本地 JSON）。
+    - COMMANDS_CONFIG_FILE = "commands.json"   —— 自定义命令按钮。
+    - Flask SECRET_KEY = 'ssh_tool_secret_key_12345'（脚本内固定，部署到公网前请修改）。
+    - 监听地址：socketio.run(app, host='0.0.0.0', port=5000, debug=True)。
+    - 启动时若 templates/simple_index.html 不存在，会自动生成。
+    - 持续运行类命令（ping/tail -f/watch/top/htop）自动加 -c 4 等超时保护。
 """
 
 import json

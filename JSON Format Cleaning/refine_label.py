@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-import os
-import cv2
-import json
-import glob
-import shutil
-import numpy as np
+"""
+作用：交互式标注复核工具。扫描 GT 目录（图片+GT labelme json）和预测标签目录，
+      找出 IoU 低于阈值的帧，按序列播放；用户可通过键盘确认后用预测框覆盖 GT 框。
+用法：python refine_label.py
+      运行后按提示输入 GT 目录与预测标签目录。
+关键参数：
+  - PARENT_DIR_GT (交互输入)：GT 图片+GT 标签所在父目录（结构 <seq>/<frame>.jpg + <seq>/<frame>.json）
+  - PARENT_DIR_PRED (交互输入)：预测标签所在父目录（支持任意嵌套层数，按 (seq, frame) 索引）
+  - IOU_THRESHOLD (代码内常量，默认 0.8)：IoU 阈值，IoU ≤ 该值进入待审核列表
+  - 键盘交互：
+      ESC / q 退出；空格 播放/暂停；A/左方向键 后退一帧；D/右方向键 前进一帧；
+      Enter / R 用预测框覆盖当前 GT json
+  - 颜色约定：GT 框绿色，预测框红色，叠加显示在原图上
+"""
 
 
 # ================================================

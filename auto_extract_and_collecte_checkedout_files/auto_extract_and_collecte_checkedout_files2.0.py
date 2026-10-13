@@ -1,3 +1,29 @@
+"""
+作用：
+    auto_extract_and_collecte_checkedout_files.py 的 2.0 版本。在 1.0 基础上增加：
+    （1）自动调用 py7zr 递归解压目录下所有 .7z 文件；
+    （2）跳过名为「已筛选文件」的目录，避免重复处理；
+    （3）递归遍历子目录收集 jpg/json 文件，仍按文件名前 55 字符分组，仅保留
+    文件数为 3 或 4 个的组；
+    （4）复制到 target_dir/已筛选文件 子目录，并生成操作日志（操作日志.txt）。
+
+用法：
+    python auto_extract_and_collecte_checkedout_files2.0.py
+    （脚本启动后会交互式提示输入待处理的完整目录路径）
+
+关键参数：
+    - target_dir：交互式输入的目标目录路径（必填）
+    - output_dir：自动生成的子目录 {target_dir}/已筛选文件
+    - group_prefix_len：分组时使用的前缀长度，固定为 55（filename[:55]）
+    - group_filter：仅保留文件数为 3 或 4 的分组（if file_count == 3 or file_count == 4）
+    - image_extensions：图片扩展名 {'.jpg'}
+    - data_extensions：数据扩展名 {'.json'}
+    - skip_dir_name：跳过名为「已筛选文件」的目录
+    - 7z 解压：使用 py7zr.SevenZipFile，extract_to = os.path.splitext(file_path)[0]
+    - 已存在目录策略：目标解压目录已存在则直接返回，不覆盖
+    - 日志文件：output_dir/操作日志.txt
+"""
+
 import os
 import shutil
 import py7zr

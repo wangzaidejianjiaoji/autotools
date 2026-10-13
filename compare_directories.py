@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+作用：对比两个目录的子目录结构差异（集合运算），输出交集、A 独有、B 独有 的子目录列表。
+用法：
+    python compare_directories.py
+    运行后依次输入目录 A、目录 B 的路径，并选择是否递归比较子目录（默认 y）。
+关键参数/变量：
+    dir_a / dir_b           运行时交互输入的两个待比较目录。
+    recursive               是否递归比较子目录（输入 y/yes 或直接回车为 True，n/no 为 False）。
+    get_all_subdirectories  获取目录下所有子目录相对路径集合；recursive=False 时仅直接子目录。
+    validate_directory      检查路径是否存在、是否可读（无权限时报错并询问是否重试）。
+    输出统计                子目录总数、交集数、A 相比 B 缺少的目录数、B 相比 A 缺少的目录数，
+                           以及对应的目录名清单。
+"""
 
 import os
 import sys

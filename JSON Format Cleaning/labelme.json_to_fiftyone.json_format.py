@@ -1,6 +1,16 @@
-import os
-import json
-import glob
+"""
+作用：将单个 labelme json 转为 fiftyone 检测格式（坐标归一化为 [cx, cy, w, h] / 图像尺寸），
+      并把整个目录下所有 json 合并写到一个 fiftyone.json 中，
+      每个图片名映射到 { "ground_truth": { "detections": [...] } }。
+用法：python labelme.json_to_fiftyone.json_format.py
+      运行后按提示输入输入目录和输出 json 路径。
+关键参数：
+  - input_dir (交互输入)：存放 labelme json 的目录（仅顶层 *.json）
+  - output_path (交互输入)：生成的 fiftyone.json 路径，默认 <input_dir>/fiftyone.json
+  - bounding_box：取 shape['points'] 得到 x1,y1,x2,y2，转为
+    [ (x_min+w/2)/imageWidth, (y_min+h/2)/imageHeight, w/imageWidth, h/imageHeight ]
+  - 默认输入目录：脚本所在目录下的 labelme_input 子目录
+"""
 
 def convert_labelme_to_fiftyone(labelme_json_path):
     with open(labelme_json_path, 'r', encoding='utf-8') as f:

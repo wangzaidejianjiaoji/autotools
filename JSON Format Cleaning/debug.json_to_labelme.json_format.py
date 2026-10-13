@@ -1,5 +1,16 @@
-import os
-import json
+"""
+作用：将 debug.json（包含 DetbyStatus.real 中 rect=[x,y,w,h] 的检测结果以及 ImgH/ImgW）
+      转换为标准 labelme 格式（version/flags/shapes/imagePath/imageData/imageHeight/imageWidth），
+      label 直接取 detection 的 classification_ID。
+用法：python debug.json_to_labelme.json_format.py
+      运行后按提示输入包含 json 的目录路径，会原地写回 json。
+关键参数：
+  - input_directory (交互输入)：待处理的目录（会递归遍历所有 .json）
+  - 已处理判定：若任一 json 已含 shapes[].points 字段则跳过整个目录，避免重复处理
+  - imagePath：将原 .json 文件名后缀替换为 .jpg
+  - imageHeight / imageWidth：读取 data["ImgH"] / data["ImgW"]
+  - points：将 rect=[x,y,w,h] 转为 [[x,y],[x+w,y+h]]；label 取 classification_ID；shape_type=rectangle
+"""
 
 def convert_json_format(input_dir):
     # 检查是否已经处理过（任一JSON文件中是否有points字段）

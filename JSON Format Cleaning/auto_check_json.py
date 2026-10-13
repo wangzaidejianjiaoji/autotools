@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-交互输入路径，遍历 .json 文件：
-1. 若 shapes 数组长度 >= threshold（即一个 json 含多个框），输出其相对路径。
-2. 对同一目录下编号连续的文件（如 000001.json 与 000002.json），
-   比较其第一个矩形框：位置偏移 > 5 或面积变化 > 50% 任一满足即输出提示。
-3. 将上述问题内容（多框 json 与框突变 json）所在帧及其前后各 2 帧的
-   json 与原图（jpg），按原目录结构复制到同级 `<输入目录名>_Reviewed` 文件夹。
+作用：扫描指定目录下的 labelme 格式 json，检测两类异常——
+      ① 单个 json 含多个 shapes（≥2 个框）；
+      ② 同目录下编号连续的 json 第一个矩形框出现明显位置突变或面积突变。
+      并将问题帧及其前后各 2 帧的 json 与原图复制到同级 `<输入目录名>_Reviewed` 文件夹便于人工复核。
+用法：python auto_check_json.py
+      运行后按提示输入要扫描的目录路径即可。
+关键参数：
+  - root (交互输入)：要扫描的根目录
+  - threshold (默认 2)：shapes 数量阈值，≥ 该值视为多框 json
+  - x_threshold / y_threshold (默认 25 / 20)：相邻帧矩形框位置偏移阈值
+  - area_ratio (默认 0.65)：相邻帧矩形框面积变化比例阈值
+  - radius (默认 2)：问题帧前后扩展的帧数
+  - suffix (默认 "_Reviewed")：输出目录后缀
+  - IMAGE_EXTS (默认 {".jpg"})：视为原图的扩展名集合
 """
 import os
 import json

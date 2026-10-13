@@ -1,8 +1,15 @@
-import argparse
-import json
-import shutil
-import sys
-from pathlib import Path
+"""
+作用：遍历输入文件夹中的 jpg 及其同名 debug.json，按 classification_ID 仅保留
+      二次分类白名单 {avata, drone, m300, mavic, p4} 的检测结果，并把 jpg 与过滤后的
+      json 复制到同级 "二次分类结果上报数据" 子目录。
+用法：python auto_debugjson_筛选二次分类结果.py [输入文件夹路径]
+      也可不带参数运行，按交互提示输入文件夹路径。
+关键参数：
+  - input_path (位置参数 / 交互输入)：待处理的图片+json 所在文件夹
+  - ALLOWED_IDS (默认 {"avata","drone","m300","mavic","p4"})：二次分类保留的 ID 白名单
+  - output_dir：固定为 <input>/二次分类结果上报数据
+  - 文件匹配规则：以 jpg 文件名为基础，匹配同 stem 的 "*.json"（即 <stem>_*.json）作为其关联检测结果
+"""
 
 ALLOWED_IDS = {"avata", "drone", "m300", "mavic", "p4"}
 

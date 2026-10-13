@@ -1,5 +1,15 @@
-import os
-import cv2
+"""
+作用：交互式视频截取工具。根据用户指定的起始帧和结束帧，将原视频的连续帧段另存为
+      新视频文件（输出与原视频同目录，文件名追加 "_cut_<start>_<end>"）。
+用法：python cut_video_by_frames.py
+      运行后按提示输入视频路径、起始帧号、结束帧号。
+关键参数：
+  - video_path (交互输入)：待截取的视频文件路径
+  - start_frame (交互输入)：起始帧号（0 ≤ start < total_frames）
+  - end_frame (交互输入)：结束帧号（start < end < total_frames）
+  - 输出：<video_dir>/<video_name>_cut_<start_frame>_<end_frame><原扩展名>
+  - 编码：cv2.VideoWriter_fourcc(*'mp4v')，分辨率与帧率与原视频保持一致
+"""
 
 
 def cut_video_by_frames():

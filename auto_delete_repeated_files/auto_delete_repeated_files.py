@@ -1,6 +1,19 @@
-import os
-import hashlib
-import shutil
+"""
+作用：基于 MD5 哈希值找出两个目录 A、B 中内容相同的重复文件，
+     默认从目录 A 中删除与目录 B 重复的文件（支持 dry-run 预览）。
+
+用法：
+    python auto_delete_repeated_files.py <目录A> <目录B>
+    # 示例：python auto_delete_repeated_files.py ./folder_a ./folder_b
+    # 若不传参，会运行内置默认路径（path/to/dir_a, path/to/dir_b），需自行修改源码。
+
+关键参数：
+    - dir_a（sys.argv[1]）：需要清理重复文件的源目录。
+    - dir_b（sys.argv[2]）：作为参考的目录（仅读取其文件哈希，不会被修改）。
+    - dry_run：是否仅打印将要删除的文件而不实际删除；
+               内置先做 dry_run 列出待删项，再询问是否真正执行删除。
+    - 删除完成后会顺带尝试清理目录 A 下的空目录。
+"""
 
 
 def get_file_hash(filepath):

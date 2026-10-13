@@ -1,7 +1,19 @@
-import os
-import json
-from pathlib import Path
-from PIL import Image
+"""
+作用：读取 YOLO/VOC 风格的 val.json / train.json（每项含 path/bbox/label），
+      在图片所在目录直接生成 labelme 格式 json（与图片同目录、同基名 .json），
+      shape 全部为 rectangle，支持 [x,y,w,h] 与 [[x1,y1],[x2,y2]] 两种 bbox。
+用法：python val_and_train.json_to_labelme.json_format1.0.py
+      运行后按提示输入图片根目录、标注文件目录（默认拼接 annotations/annotations）。
+关键参数：
+  - input_dir (交互输入)：图片所在根目录
+  - annotations_dir (交互输入)：val.json / train.json 所在目录（相对路径会拼接到 input_dir）
+  - debug (交互输入 y/n)：开启后输出前 5 条匹配示例及失败原因
+  - 标注文件：固定寻找 <annotations_dir>/val.json 与 <annotations_dir>/train.json
+  - 图片匹配：按文件名优先，支持 "6/390.jpg" -> "<base>/6/6/390.jpg" 的双层目录猜测
+  - imageWidth / imageHeight：通过 PIL 读取真实图片尺寸
+  - bbox：支持 [x,y,w,h] 与 [[x1,y1],[x2,y2]]；shape_type=rectangle
+  - 无标注的图片会被跳过，不生成 json
+"""
 
 
 def convert_bbox_format(bbox):

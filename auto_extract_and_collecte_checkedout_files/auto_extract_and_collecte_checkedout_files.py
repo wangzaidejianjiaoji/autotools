@@ -1,3 +1,22 @@
+"""
+作用：
+    在指定目录下，按文件名前 55 个字符作为分组键（截短前缀）将所有文件分组，
+    仅保留文件数恰好为 3 或 4 个的分组，并把对应文件复制到目标目录下的「已筛选文件」
+    子目录中。不解压、不解析标注内容；只做按文件名前缀的简单筛选拷贝。
+
+用法：
+    python auto_extract_and_collecte_checkedout_files.py
+    （脚本启动后会交互式提示输入待处理的完整目录路径）
+
+关键参数：
+    - target_dir：交互式输入的目标目录路径
+    - output_dir：自动生成的子目录 {target_dir}/已筛选文件
+    - group_prefix_len：分组时使用的前缀长度，固定为 55（filename[:55]）
+    - group_filter：仅保留文件数为 3 或 4 的分组（if file_count == 3 or file_count == 4）
+    - 已处理目录策略：仅处理目录中的文件（os.path.isfile），不递归子目录
+    - 文件复制方式：shutil.copy2（保留元数据），同名目标文件直接覆盖
+"""
+
 import os
 import shutil
 from collections import defaultdict

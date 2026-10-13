@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
-import os
-import glob
+"""
+作用：批量删除指定目录下常见的模型推理/标注结果文件
+     （*.result.txt、*_vis.jpg、*_gt.jpg、t.list），支持可选的递归子目录遍历。
+
+用法：
+    python "auto_delete.result.txt&_vis.jpg&_gt.jpg&t.list.py"
+    # 然后按提示输入路径与是否递归子目录（0/1）
+
+关键参数：
+    - 待清理目录路径：交互式输入（input()），为根目录路径字符串。
+    - recursive：是否递归遍历子目录，输入 0 表示不递归，1 表示递归。
+    - patterns：脚本内部固定的删除模式列表：
+        * *.result.txt   —— 模型推理结果文本
+        * *_vis.jpg      —— 可视化结果图片
+        * *_gt.jpg       —— 真值/GT 对比图片
+        * t.list         —— 任务列表文件
+"""
 
 def delete_files():
     path = input("请输入要清理的路径: ").strip()

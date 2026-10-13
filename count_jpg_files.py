@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+"""
+作用：递归统计指定目录及其所有子目录下的 .jpg 文件总数（交互式命令行工具）。
+用法：
+    python count_jpg_files.py
+    运行后按提示输入目录路径（输入 'quit' 退出）；脚本会逐个目录打印总 jpg 数。
+关键参数/变量：
+    input_path    运行时交互输入的待遍历根目录；输入 'quit' 时退出主循环。
+    root_path     count_jpg_files() 的参数，即要递归遍历的目录。
+    后缀匹配      filename.lower().endswith('.jpg')，大小写不敏感。
+"""
 
 import os
 

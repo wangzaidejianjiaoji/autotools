@@ -1,4 +1,18 @@
-import os
+"""
+作用：批量重命名指定文件夹下的 .jpg 文件，按"最后一个下划线 _"切分，
+     只保留下划线之后的字符串作为新文件名（自动补 .jpg 后缀）。
+
+用法：
+    python auto_rename_jpg.py
+    # 然后按提示输入目标文件夹路径
+
+关键参数：
+    - folder_path：交互式输入的目标文件夹路径，仅处理该目录直接包含的 .jpg，
+      不递归进子目录。
+    - 后缀匹配：仅匹配小写 .jpg（.lower().endswith('.jpg')）。
+    - 重命名规则：old_name.rsplit('_', 1) 取最后一段；新名若无 .jpg 后缀则补上。
+      例如 20260121_15-34-12_00001.jpg -> 00001.jpg
+"""
 
 def rename_jpg_files(folder_path):
     if not os.path.isdir(folder_path):

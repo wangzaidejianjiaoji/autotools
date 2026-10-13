@@ -1,3 +1,17 @@
+"""
+作用：FiftyOne 数据集可视化工具。接收一个目录，自动递归探测其中的图片与 labelme 标注，
+     把 labelme JSON 转换为 FiftyOne 格式后加载到本地 FiftyOne 数据库，并启动可视化页面。
+用法：
+    python FiftyOne.py
+    运行后按提示输入数据集目录或 labels.json 路径即可。
+关键参数/变量：
+    FIFTYONE_DIR          (环境变量) FiftyOne 数据存放目录，默认 'D:/fiftyone_data'。
+    port = 8080           FiftyOne App 启动端口（main 中定义）。
+    max_depth = 3         递归探测子数据集时的最大深度。
+    dataset_name          自动生成的时间戳命名（merged_dataset_YYYYMMDD_HHMMSS）。
+    input_path            运行后由用户交互输入的目录或 labels.json 路径。
+"""
+
 import os
 import sys
 import json

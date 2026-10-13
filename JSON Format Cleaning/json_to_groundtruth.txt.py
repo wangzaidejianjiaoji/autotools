@@ -1,7 +1,15 @@
-import os
-import json
-import glob
-import re
+"""
+作用：遍历指定目录下所有 labelme 格式 json，提取每个矩形框 (x,y,w,h)，
+      按 json 文件名顺序聚合写入到与目录同名的 groundtruth.txt，
+      文件命名里 "_YYMMDD_" 形式的日期会被改写为 "_20YYMMDD_"。
+用法：python json_to_groundtruth.txt.py
+      运行后按提示输入 JSON 文件所在目录路径。
+关键参数：
+  - path (交互输入)：存放 labelme json 的目录，仅处理顶层 *.json（不递归）
+  - 每行格式："x.xxx,y.yyy,w.www,h.hhh"
+  - 输出：<path>/<folder_name>_groundtruth.txt，其中 folder_name 为目录名
+    （若含 "_YYMMDD_" 子串会被改写为 "_20YYMMDD_"）
+"""
 
 def process_labelme_json(json_path):
     """从labelme格式的JSON文件中提取矩形框的x,y,w,h"""

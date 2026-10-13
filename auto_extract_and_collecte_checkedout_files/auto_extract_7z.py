@@ -1,3 +1,25 @@
+"""
+作用：
+    通过 subprocess 调用 PowerShell 执行同目录下的 extract_7z.ps1 脚本来解压 7z 压缩包。
+    脚本内目标目录/输出目录均硬编码（用于测试），仅做解压动作不做其他处理。
+    适用于不便直接使用 py7zr 库、需要 PowerShell 7z 模块的环境。
+
+用法：
+    python auto_extract_7z.py
+    （脚本中目标目录被硬编码，无需命令行参数；直接运行即可）
+
+关键参数：
+    - target_dir：硬编码目标目录 r"D:\\data\\Night\\multi_frame_test_set"
+    - output_dir：硬编码输出目录 r"D:\\data\\Night\\multi_frame_test_set"（与输入目录相同）
+    - powershell_script：脚本同目录下的 extract_7z.ps1 完整路径（自动拼接）
+    - subprocess 调用参数：
+        * ExecutionPolicy = Bypass
+        * 超时 timeout = 120（秒）
+        * 解压参数：-filePath（7z 源文件路径）、-extractTo（解压目标路径）
+    - max_frames：脚本中声明但仅作日志打印使用（固定为 5），表示前 17 位时间戳判定的帧数
+    - 已存在目录策略：目标目录已存在则直接跳过解压
+"""
+
 import os
 import subprocess
 

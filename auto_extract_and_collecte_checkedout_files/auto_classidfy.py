@@ -1,3 +1,29 @@
+"""
+作用：
+    自动解压指定目录下的 7z 压缩文件，按文件基本名将 jpg/json 分组并根据 JSON 内容
+    （DetbyStatus.efflt/real 中的 type/classification_ID）将文件组分类为
+    「未检出_背景」「已检出_斑点」「已检出_分类模型_红框正确上报」「已检出_分类模型_黑框正确未上报」
+    等类别，复制到对应子目录并生成操作日志。
+
+用法：
+    python auto_classidfy.py
+    （脚本启动后会交互式提示输入待处理的完整目录路径）
+
+关键参数：
+    - target_dir：交互式输入的目标目录路径（必填，命令行运行时会提示用户输入）
+    - extensions：collect_all_files 中要收集的文件扩展名，默认 {'.jpg', '.json'}
+    - patterns_to_remove（extract_base_name）：用于提取文件名基本部分的正则模式列表：
+        * r'_z\[\[.*?\]\].*?@.*$'   —— 去除窄视场图像后缀
+        * r'_speckle$'              —— 去除斑点标注后缀
+        * r'_drone$'                —— 去除无人机标注后缀
+    - output_dir_name：基于 target_dir 最后一级目录名生成的输出子目录，形如
+      {last_dir_name}_classified
+    - 类别目录：未检出_背景、已检出_斑点、已检出_斑点_误检、
+      已检出_分类模型_红框_正确上报、已检出_分类模型_红框_误报、
+      已检出_分类模型_黑框_正确未上报、已检出_分类模型_黑框_误报
+    - 日志文件：output_dir/操作日志.txt
+"""
+
 import os
 import shutil
 import py7zr

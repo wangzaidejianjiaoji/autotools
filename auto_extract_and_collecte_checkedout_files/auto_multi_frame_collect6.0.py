@@ -11,6 +11,35 @@
 6. 自动对所有子目录进行 JSON 格式转换
 7. 自动修改输出文件夹中 JSON 文件名以对应原图
 """
+"""
+作用：
+    多帧图片提取工具 v13（增强分类版）。在 v12 系列基础上进行以下改进：
+    （1）使用 subprocess 调用系统 7z 命令行（7z x -o<out> -aoa）替代 py7zr；
+    （2）相似分类（similar）规则扩展：同时对 speckle 与 drone 后缀判定
+       「非天空背景静态误报」，而不仅限于 speckle；
+    （3）新增「步骤 7：修改 JSON 文件名以对应原图」流程：扫描
+       dronefp-single、fly、similar、specle-single 四个子目录中的 JSON，
+       去掉文件名中的 _drone / _speckle 后缀，使其与同目录原图文件名对齐。
+
+用法：
+    python auto_multi_frame_collect6.0.py
+    （脚本启动后会交互式提示输入 7z 所在目录、输出目录；max_frames 硬编码为 5）
+
+关键参数：
+    - target_dir：交互式输入的 7z 文件所在目录路径
+    - output_dir：交互式输入的输出目录路径，默认 r"D:\\multi-frame_test_set"
+    - max_frames：固定为 5
+    - check_bbox_size：JSON shapes 中矩形标注框 width 或 height >= 3 视为正常，否则 small
+    - is_sky_background：params 落入四个区间之一判定为天空背景动态误报
+    - similar 分类：suffix in ['speckle', 'drone']，且非天空背景，且标注框正常
+    - fly/similar 拆分策略：同组不能同时含 drone 和 speckle；否则按后缀拆分
+    - 7z 命令行：subprocess.run(['7z', 'x', file_path, '-o' + extract_to, '-aoa'])
+    - JSON 格式转换：依赖 ../JSON Format Cleaning/debug.json_to_labelme.json_format.py
+    - JSON 重命名目录：rename_json_files_to_match_raw_jpg 处理
+      dronefp-single / fly / similar / specle-single 子目录中的 JSON
+    - 同名重命名：复制时若冲突自动追加 _1、_2 ...
+    - 源文件策略：解压后源文件保留；复制前会校验源文件是否存在
+"""
 
 import os
 import re

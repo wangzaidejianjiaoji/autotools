@@ -2,9 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-SSH 快捷命令工具 - 可视化按钮操作，免密登录 Linux 服务器
-支持自定义命令按钮和密码输入
-依赖安装：pip install paramiko
+作用：基于 tkinter 的 SSH 快捷命令图形工具。
+     在 GUI 中选择已保存的服务器并通过 paramiko 建立 SSH 连接，
+     可执行预定义的一键命令按钮、临时输入命令，
+     支持 sudo 密码弹窗输入与 Ctrl+Z 终止当前命令。
+
+用法：
+    python auto_UX_linux.py
+    依赖：pip install paramiko
+
+关键参数：
+    - SERVERS_CONFIG_FILE = "servers.json"  —— 服务器配置（name/host/port/username/password）。
+    - COMMANDS_CONFIG_FILE = "commands.json" —— 自定义命令按钮配置（name/command/need_password）。
+    - 自定义命令支持 need_password=True，执行时会弹出 sudo 密码输入框。
+    - 持续运行类命令（ping/tail -f/watch/top/htop）会被自动加 -c 4 等超时保护。
+    - 默认命令集合（load_custom_commands 中）涵盖 df -h / free -m / top / pwd / ls -la / tail messages。
 """
 
 import json

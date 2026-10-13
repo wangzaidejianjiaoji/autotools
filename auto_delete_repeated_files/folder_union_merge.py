@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
-import os
-import hashlib
-import shutil
-import sys
+"""
+作用：基于文件内容 MD5 将两个文件夹取并集（去重），合并到一个新输出目录中。
+     仅复制每个唯一哈希首次出现的文件（先 A 后 B 的优先级）。
+
+用法：
+    # 命令行模式
+    python folder_union_merge.py <目录A> <目录B> <输出目录>
+    # 示例：python folder_union_merge.py ./folder_a ./folder_b ./merged
+
+    # 交互模式（不传参进入）
+    python folder_union_merge.py
+    # 按提示依次输入目录A、目录B、输出目录，并确认是否覆盖已存在输出。
+
+关键参数：
+    - dir_a（sys.argv[1]）：第一个源目录。
+    - dir_b（sys.argv[2]）：第二个源目录。
+    - output_dir（sys.argv[3]）：去重并集输出目录；已存在时会询问 y/n 是否覆盖。
+    - 去重策略：每个文件计算 MD5 哈希，按哈希去重；保留相对路径到输出目录。
+"""
 
 
 def get_file_hash(filepath):

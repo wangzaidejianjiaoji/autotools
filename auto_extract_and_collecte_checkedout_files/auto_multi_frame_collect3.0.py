@@ -9,6 +9,33 @@
 4. 没有 JSON 对应的纯 JPG 组不复制
 5. 前 17 位字符不一致或原图数量不等于 5 张则整组不复制
 """
+"""
+作用：
+    多帧图片提取工具 v11（文件名精确匹配版）。流程：解压 7z → 找 ping/pong →
+    解析每个文件名得到 base_ts/ms/params/capture_type/suffix 等信息 →
+    按 ts_17（精确到秒的前 17 位）+ params + capture_type 分组 →
+    强制要求组内无后缀原图恰好等于 max_frames（默认 5）才处理 →
+    按 JSON 同名匹配标注 JPG，并按 JSON 后缀分类输出到 drone/speckle/mix_drone_speckle。
+    不符合帧数条件的整组跳过。
+
+用法：
+    python auto_multi_frame_collect3.0.py
+    （脚本启动后会交互式提示输入 7z 所在目录、输出目录、每组最大帧数）
+
+关键参数：
+    - target_dir：交互式输入的 7z 文件所在目录路径
+    - output_dir：交互式输入的输出目录路径，默认 r"D:\\multi-frame_test_set"
+    - max_frames（max_frames_per_group）：固定为 5，必须正好此数量
+    - 时间判定：base_ts 的前 17 位字符必须完全一致（精确到秒）
+    - 文件名解析（parse_filename）：
+        * 模式 r'^(\\d{8}_\\d{2}-\\d{2}-\\d{2})\\.(\\d+)_([p\\d\\.t\\-z]+)_(.+?)(?:_(drone|speckle))?$'
+        * 提取 base_ts（秒级时间戳）、ms（毫秒）、full_ts（含毫秒时间戳）、
+          ts_17（base_ts 前 17 位）、params（如 p16.00t0.00z2.00）、capture_type（如 narrow_capture）、suffix（drone/speckle）
+    - 分组 key：f"{ts_17}_{params}_{capture_type}"
+    - 输出子目录：drone / speckle / mix_drone_speckle / unknown（混组输出到 mix_drone_speckle）
+    - 同名重命名：复制到输出目录时若文件名冲突自动追加 _1、_2 ...
+    - 源文件策略：解压后源文件保留（仅复制到目标，不删除源）
+"""
 
 import os
 import re

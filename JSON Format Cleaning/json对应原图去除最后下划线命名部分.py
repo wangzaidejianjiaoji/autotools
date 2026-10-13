@@ -1,6 +1,13 @@
-import os
-import glob
-import sys
+"""
+作用：批量重命名工具。把指定目录顶层 *.json 文件名中最后一个下划线之后为
+      "drone" 或 "speckle" 的后缀去掉，使 json 与同名原图对齐（如 000001_drone.json -> 000001.json）。
+用法：python "json对应原图去除最后下划线命名部分.py" [目录路径]
+      也可不带参数运行，按交互提示输入目录路径。
+关键参数：
+  - dir_path (位置参数 / 交互输入)：待处理的目录（仅顶层 *.json，不递归）
+  - 触发条件：文件名最后一个下划线之后的子串必须等于 "drone" 或 "speckle"
+  - 目标已存在则跳过该文件并打印警告，不会覆盖
+"""
 
 
 def batch_rename_json_files():

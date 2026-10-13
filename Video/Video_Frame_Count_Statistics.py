@@ -1,5 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+作用:
+    递归遍历指定目录及其子目录中的所有视频文件，读取并打印每个视频的总帧数，
+    最后输出所有视频帧数的合计，用于快速盘点数据集的总帧数规模。
+
+用法:
+    python Video_Frame_Count_Statistics.py
+    启动后按提示输入待扫描的目录路径即可，目录下（含子目录）所有受支持的视频
+    都会被统计。
+
+关键参数:
+    VIDEO_EXTENSIONS:        集合，受支持的视频扩展名
+                             （mp4/mov/avi/mkv/flv/wmv/m4v/webm）。
+    input_dir:               交互输入，待扫描的根目录。
+    get_video_frame_count(): 通过 cv2.VideoCapture 读取视频 CAP_PROP_FRAME_COUNT。
+    scan_directory():        递归遍历目录，收集所有受支持的视频文件路径。
+    total_frames:            汇总所有成功读取视频的总帧数。
+    results:                 列表，元素为 (相对路径, 帧数或"无法读取")。
+"""
 
 import cv2
 import os

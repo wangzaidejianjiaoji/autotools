@@ -1,3 +1,29 @@
+"""
+作用：
+    多帧图片提取工具 v8（JPG 不重复分配版）。流程：
+    （1）解压目录中的 .7z 文件；
+    （2）从解压目录中查找 ping/pong 子目录作为图像源；
+    （3）以 JSON 为主导进行匹配：按文件名时间戳（精确到秒 base_ts + 毫秒）
+    把每个 JSON 与同秒级、最接近时间差的 N 张 JPG 配对，且 JPG 一旦被分配就从
+    候选池中移除，保证不重复；
+    （4）将匹配成功的 JSON 与对应 JPG 复制到指定输出目录。
+
+用法：
+    python auto_multi_frame_collect.py
+    （脚本启动后会交互式提示输入 7z 所在目录、输出目录、每组最大帧数）
+
+关键参数：
+    - target_dir：交互式输入的 7z 文件所在目录路径
+    - output_dir：交互式输入的输出目录路径，默认 r"D:\\multi-frame_test_set"
+    - max_frames（max_frames_per_group）：每组最大帧数，默认 5
+    - timestamp_pattern：r'^(\\d{8}_\\d{2}-\\d{2}-\\d{2})\\.(\\d+)' 用于解析文件名毫秒
+    - 时间判定：base_ts（精确到秒）相同 + 毫秒差最小
+    - ping/pong_dir：仅扫描名为 ping 或 pong 的子目录
+    - 后缀识别：文件名去除 _speckle / _drone / _narrow_capture / _wide_capture
+    - 同名重命名：复制到输出目录时若文件名冲突自动追加 _1、_2 ...
+    - 源文件策略：解压后源文件保留（仅复制到目标，不删除源）
+"""
+
 import os
 import shutil
 import py7zr

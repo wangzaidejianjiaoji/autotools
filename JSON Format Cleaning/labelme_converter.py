@@ -1,6 +1,19 @@
-import json
-import os
-from pathlib import Path
+"""
+作用：将 labelme json 转为 fiftyone 检测格式（坐标归一化为 [cx, cy, w, h] / 图像尺寸）。
+      支持单个文件转换和整个目录批量转换，输出文件名追加 "_fiftyone" 后缀。
+用法：
+  python labelme_converter.py <labelme.json> [输出.json]
+  python labelme_converter.py <输入目录> [输出目录]
+  python labelme_converter.py            # 默认转换当前目录下 labelme.json -> fiftyone_output.json
+关键参数：
+  - input_file / input_dir (位置参数)：单个 labelme json 文件或包含 json 的目录
+  - output_file / output_dir (位置参数，可选)：单个输出 json 路径或输出目录；缺省时
+    单文件生成 "<stem>_fiftyone.json"，批量生成 "<stem>_fiftyone.json" 到输入目录
+  - bounding_box：基于 shape['points'] 与 imageWidth/imageHeight 归一化为
+    [cx/imageWidth, cy/imageHeight, w/imageWidth, h/imageHeight]
+  - shape_type 仅处理 "rectangle"；label 缺省时记为 "unknown"
+  - 跳过规则：批量转换时若文件名已含 "fiftyone"（不区分大小写）则跳过
+"""
 
 
 def labelme_to_fiftyone(labelme_path, output_path=None):

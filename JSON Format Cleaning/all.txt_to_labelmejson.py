@@ -1,3 +1,17 @@
+"""
+作用：将包含矩形框坐标的 txt 文件（每行 "x1,y1,width,height"）逐帧转换为 labelme 格式的 JSON 标注文件，
+      输出与图片帧对应的多个 .json 文件。
+用法：python all.txt_to_labelmejson.py
+      运行后按交互提示输入 txt 路径、JSON 命名格式（末级目录名_五位帧号 / 六位帧号）以及起始帧号（0 或 1）。
+关键参数：
+  - txt_path (交互输入)：待转换的 txt 标注文件路径，每行格式为 x1,y1,width,height
+  - format_choice (1 或 2)：JSON 文件命名格式；1 为 "<目录名>_五位帧号.json"，2 为 "六位帧号.json"
+  - start_frame (0 或 1)：起始帧号偏移
+  - output_dir (交互输入)：输出 JSON 目录，默认与 txt 同目录
+  - image_width / image_height：自动读取首张图片尺寸，失败时使用默认 1280x1024（代码中实际默认 1920x1080）
+  - label：标注类别，固定为 "drone"
+"""
+
 import os
 import json
 from PIL import Image

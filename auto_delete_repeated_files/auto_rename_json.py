@@ -1,6 +1,19 @@
-import os
-import json
-import re
+"""
+作用：批量重命名指定文件夹下的 .json 文件，将文件按末尾数字序号排序后，
+     重新编号为统一的"指定位数"的帧号（可选 5 位/6 位），
+     同时将 JSON 内容里的 imagePath 字段同步更新为新的 .jpg 名。
+
+用法：
+    python auto_rename_json.py
+    # 按交互提示选择帧号位数（5/6）、起始偏移（0/1），再输入文件夹路径。
+
+关键参数：
+    - folder_path：交互式输入的目标文件夹路径，不递归子目录。
+    - frame_digits：5 表示 00001 风格；6 表示 000001 风格。
+    - start_frame：0 表示新序号 = 原序号 + 0；1 表示新序号 = 原序号 + 1。
+    - 排序键：extract_number_from_filename 取文件名末尾的连续数字（如 cb_xxx_02990 -> 2990）。
+    - 内容更新：若 JSON 中含 imagePath，会替换其中的 basename 为新帧号（保留原目录部分）。
+"""
 
 def extract_number_from_filename(filename):
     base_name = os.path.splitext(filename)[0]

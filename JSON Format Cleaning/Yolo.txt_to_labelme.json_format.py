@@ -1,9 +1,17 @@
-import os
-import json
-import glob
-from pathlib import Path
-from PIL import Image
-import re
+"""
+作用：将 YOLO 格式的 txt 标注（class_id cx cy w h，归一化坐标）逐文件转换为 labelme
+      格式 json，输出到对应的 images 目录下。默认假设数据集目录结构为
+      <root>/labels/... 与 <root>/images/...，会自动把路径中的 labels 替换为 images。
+用法：python Yolo.txt_to_labelme.json_format.py
+      运行后按提示输入目录路径即可递归处理所有 .txt。
+关键参数：
+  - input_dir (交互输入)：YOLO 数据集根目录，会递归查找所有 .txt
+  - 路径映射规则：txt 相对路径中 "labels" -> "images"，用于定位同名图片
+  - 图片扩展名：jpg/jpeg/png/bmp/tiff/gif 等；不区分大小写匹配
+  - 坐标转换：归一化 cx/cy/w/h × (img_width, img_height) 转为绝对像素 [[x1,y1],[x2,y2]]
+  - label：固定为 "bird"，shape_type=rectangle
+  - imageWidth / imageHeight：自动通过 PIL 读取真实图片尺寸
+"""
 
 
 def yolo_to_labelme_shapes(yolo_format, img_width, img_height):

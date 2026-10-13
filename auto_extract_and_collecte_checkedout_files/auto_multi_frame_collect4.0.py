@@ -9,6 +9,35 @@
 4. 没有 JSON 对应的纯 JPG 组不复制
 5. 前 17 位字符不一致或原图数量不等于 5 张则整组不复制
 """
+"""
+作用：
+    多帧图片提取工具 v12（增强分类版）在 v11 基础上新增多种特殊分类：
+    （1）small：JSON 标注框长宽均 < 10（标注框过小）；
+    （2）fly：params 命中天空背景动态误报规则（p220-280&t>5.20、p310-320&t>5.20、
+       p350-359&t>8.20、p0-34&t>8.20）；
+    （3）similar：非天空背景静态误报；
+    （4）dronefp-single / specle-single：每组中时间最早的 drone/speckle JSON 与对应原图
+       的单帧数据（仅复制原图和 JSON，不复制标注图）。
+    解压后会尝试调用 ../JSON Format Cleaning/debug.json_to_labelme.json_format.py
+    中的 convert_json_format 对解压目录进行 JSON 格式转换。
+
+用法：
+    python auto_multi_frame_collect4.0.py
+    （脚本启动后会交互式提示输入 7z 所在目录、输出目录；max_frames 硬编码为 5）
+
+关键参数：
+    - target_dir：交互式输入的 7z 文件所在目录路径
+    - output_dir：交互式输入的输出目录路径，默认 r"D:\\multi-frame_test_set"
+    - max_frames：固定为 5，必须正好此数量
+    - 时间判定：base_ts 的前 17 位字符必须完全一致
+    - check_bbox_size：JSON shapes 中矩形标注框 width 或 height >= 10 视为正常，否则 small
+    - is_sky_background：params 中 p/t 值落入四个区间之一判定为天空背景动态误报
+    - 输出子目录：drone / speckle / unknown / small / fly/drone / fly/speckle /
+      similar/drone / similar/speckle / dronefp-single / specle-single
+    - JSON 格式转换：依赖 ../JSON Format Cleaning/debug.json_to_labelme.json_format.py
+    - 同名重命名：复制到输出目录时若文件名冲突自动追加 _1、_2 ...
+    - 源文件策略：解压后源文件保留
+"""
 
 import os
 import re

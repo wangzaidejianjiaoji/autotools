@@ -1,6 +1,18 @@
 #!/usr/bin/env python3
-import os
-import json
+"""
+作用：递归扫描输入目录，在每个含 IR_label.json 的子目录里，把 exist 标志为 1 的帧
+      按其 gt_rect=[x,y,w,h] 生成对应的 labelme json（命名 "六位帧号.json"）。
+      适用于红外（IR）鸟类目标跟踪数据集。
+用法：python IR_label.json_to_labelme.json.py
+      运行后按提示输入根目录路径。
+关键参数：
+  - input_dir (交互输入)：根目录，会递归查找所有名为 IR_label.json 的文件
+  - exist_list[i]==0：跳过该帧
+  - label：固定为 "bird"
+  - shape_type：固定为 "rectangle"
+  - imageHeight / imageWidth：硬编码 512 / 640（红外图像常用分辨率）
+  - 输出命名：{seq_num:06d}.json，imagePath 同名 .jpg
+"""
 
 
 def convert_gt_rect_to_points(gt_rect):

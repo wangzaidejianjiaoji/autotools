@@ -1,3 +1,24 @@
+"""
+作用：使用 OSTrack 视觉跟踪器对视频进行预标注（自动跟踪框选目标，输出每帧框坐标
+     以及可视化视频），作为后续人工/算法预标注的起点。
+用法：
+    python preLabel.py --videofile <video.mp4> [--optional_box x y w h] \
+                       [--save_results] [--save_video] \
+                       [--checkpoint <weights.pth.tar>]
+    例：python preLabel.py --videofile ./test.mp4 --save_results --save_video
+关键参数：
+    --videofile     （必填）输入视频文件路径。
+    --optional_box  可选，初始目标框 x y w h；缺省时由用户在第一帧用 cv2.selectROI 选择。
+    --save_results  是否把每帧的 bbox 写到 txt（默认 True）。
+    --save_video    是否把带跟踪框的可视化结果另存为 mp4（默认 False）。
+    --checkpoint    OSTrack 模型权重路径，默认 /home/lz/wanghd/OSTrack/weights/ostrack-260415.pth.tar。
+    tracker_param   在 get_parameters() 中指定 YAML 配置，默认 'vitb_384_mae_ce_32x4_ep300'，
+                    对应 experiments/ostrack/<name>.yaml。
+    enabled_CE      create_tracker() 中的开关，是否启用 CE 模块；脚本中以 enabled_CE=False 调用。
+    save_all_boxes  params.save_all_boxes，是否保存所有 query 的 box（默认 False）。
+    key 快捷键      运行期 cv2.waitKey 控制：Esc 退出、Space 暂停、R 重新选择目标框。
+"""
+
 import warnings
 warnings.filterwarnings("ignore")
 import argparse

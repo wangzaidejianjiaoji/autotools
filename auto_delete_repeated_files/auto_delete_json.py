@@ -1,5 +1,15 @@
-import os
-from pathlib import Path
+"""
+作用：递归删除指定目录及其所有子目录下的 .json 文件。
+
+用法：
+    python auto_delete_json.py
+    # 然后按提示输入目标目录路径
+
+关键参数：
+    - 目标目录路径：交互式输入（input()），将作为 os.walk 的起点。
+    - 递归策略：通过 os.walk 递归遍历所有子目录中的 .json 文件。
+    - 后缀过滤：仅删除以 .json 结尾的文件。
+"""
 
 
 def delete_all_json_files(directory_path):

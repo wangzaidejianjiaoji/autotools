@@ -1,3 +1,31 @@
+"""
+作用：
+    auto_classidfy.py 的 2.0 版本。在原版基础上改为同时解析 _speckle.json 与 _drone.json
+    两种 JSON，并按优先级（drone > speckle）将每个文件组归类到
+    「未检出_背景」「已检出_斑点」「已检出_分类模型_红框正确上报」
+    「已检出_分类模型_黑框正确未上报」四类目录中。改进点：使用更稳健的窄视场文件名
+    解析（_z[...].*_to_.*@.*）、并对宽视场原图的判定放宽为「文件名以 _wide_capture.jpg 结尾」。
+
+用法：
+    python auto_classidfy2.0.py
+    （脚本启动后会交互式提示输入待处理的完整目录路径）
+
+关键参数：
+    - target_dir：交互式输入的目标目录路径
+    - extensions：collect_all_files 中要收集的文件扩展名，默认 {'.jpg', '.json'}
+    - patterns_to_remove（extract_base_name）：
+        * r'_z\[\[.*?\]\].*?_to_.*?@.*' —— 去除窄视场图像后缀（带 to/坐标信息）
+        * r'_speckle$'                   —— 去除斑点标注后缀
+        * r'_drone$'                     —— 去除无人机标注后缀
+    - output_dir_name：基于 target_dir 最后一级目录名生成，形如 {last_dir_name}_classified
+    - 检测优先级：drone JSON 检测 > speckle JSON 检测（drone_type / drone_classification_id
+      优先于 speckle_type / speckle_classification_id）
+    - 类别目录：未检出_背景、已检出_斑点、已检出_斑点_误检、
+      已检出_分类模型_红框_正确上报、已检出_分类模型_红框_误报、
+      已检出_分类模型_黑框_正确未上报、已检出_分类模型_黑框_误报
+    - 日志文件：output_dir/操作日志.txt
+"""
+
 import os
 import shutil
 import py7zr

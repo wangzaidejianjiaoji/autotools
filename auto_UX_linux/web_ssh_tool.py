@@ -2,10 +2,25 @@
 # -*- coding: utf-8 -*-
 
 """
-Web SSH 工具 - 基于 Flask 和 WebSocket
-让同事可以通过浏览器访问操作 SSH 命令
-cd autotools\auto_UX_linux
-python web_ssh_tool.py
+作用：功能更完整的 Web SSH 工具（Flask + flask-socketio），
+     支持在浏览器内对多台服务器建立 SSH 连接、执行命令，
+     页面支持服务器管理、自定义命令的增/改/删，
+     支持 sudo 密码弹窗与 Ctrl+Z 终止当前命令。
+
+用法：
+    pip install flask flask-socketio eventlet paramiko
+    cd autotools\auto_UX_linux
+    python web_ssh_tool.py
+    浏览器访问 http://<本机IP>:5000/
+
+关键参数：
+    - SERVERS_CONFIG_FILE = "servers.json"     —— 服务器列表持久化。
+    - COMMANDS_CONFIG_FILE = "commands.json"   —— 自定义命令持久化。
+    - Flask SECRET_KEY = 'ssh_tool_secret_key_12345'（脚本内固定，部署到公网前请修改）。
+    - SESSION 寿命：PERMANENT_SESSION_LIFETIME = timedelta(hours=24)。
+    - 监听：socketio.run(app, host='0.0.0.0', port=5000, debug=True)。
+    - 启动时若 templates/index.html 不存在，会自动生成。
+    - 持续运行类命令（ping/tail -f/watch/top/htop）自动加 -c 4 等超时保护。
 """
 
 import json

@@ -1,5 +1,15 @@
-import json
-import os
+"""
+作用：将视频帧追踪结果（每帧含 x1,y1,x2,y2,confidence 的 JSON）转换为 labelme 格式的
+      单帧矩形框 json；输出文件按 "<基名>_五位帧号.json" 命名。
+用法：python convert_to_labelme.py
+      运行后按提示输入待转换的 JSON 路径和输出目录。
+关键参数：
+  - input_json_path (交互输入)：待转换的 JSON 路径，内容为 {帧号: [x1,y1,x2,y2,confidence]} 字典
+  - output_dir (交互输入)：生成的 labelme json 输出目录
+  - image_width / image_height：尝试读取 <output_dir>/<base_name>_00000.jpg 获取真实分辨率，
+    失败则使用默认 1920x1080
+  - label：固定为 "drone"，shape_type 固定为 "rectangle"
+"""
 
 try:
     from PIL import Image

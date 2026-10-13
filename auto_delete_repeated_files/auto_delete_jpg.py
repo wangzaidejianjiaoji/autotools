@@ -1,5 +1,15 @@
-import os
-import glob
+"""
+作用：删除指定目录下（不递归）所有的 .jpg 图片文件。
+
+用法：
+    python auto_delete_jpg.py
+    # 然后按提示输入要清理.jpg文件的目录路径
+
+关键参数：
+    - 目标目录路径：交互式输入（input()），仅删除该目录直接包含的 .jpg，
+      不会进入其子目录。
+    - 后缀过滤：仅匹配 *.jpg（小写 .jpg 模式）。
+"""
 
 def delete_jpg_files():
     path = input("请输入要删除.jpg文件的路径: ").strip()

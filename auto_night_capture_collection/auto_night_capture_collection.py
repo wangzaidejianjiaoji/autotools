@@ -5,21 +5,31 @@
   夜间多帧存图自动化脚本
 ================================================================================
 
-功能说明：
-    自动化完成夜间多帧图像采集的全流程，包括：
-    1. 从 Seafile 下载临时版本文件
-    2. 修改相机配置（密码、debug 模式）
-    3. 停止原服务并启动多帧采集程序
-    4. 采集完成后复制数据并上传到 Seafile
+作用：自动化完成夜间多帧图像采集的全流程，包括：
+    1) 从 Seafile 下载临时版本 GVS AppImage；
+    2) 修改相机配置（密码、debug 模式、开启多帧采集）；
+    3) 停止原 gvs 服务并启动多帧采集程序；
+    4) 采集完成后从历史目录复制最新数据并上传到 Seafile。
 
-依赖安装：
-    pip3 install requests pyyaml
+用法：
+    sudo python3 auto_night_capture_collection.py
+    依赖：pip3 install requests pyyaml
 
-使用方法：
-    sudo python3 night_capture_automation.py
-
-作者：OpenClaw AI
-日期：2025-01
+关键参数（位于脚本 Config 类中，使用前需根据环境修改）：
+    - Seafile 相关：
+        SEAFILE_BASE_URL / SEAFILE_USERNAME / SEAFILE_PASSWORD
+        UPLOAD_REPO_ID / UPLOAD_PARENT_DIR  （上传目标库与目录）
+        TEMP_VERSION_REPO / TEMP_VERSION_PATH （临时版本下载源）
+    - 本地路径：
+        GVS_CONFIG_DIR   —— 相机配置目录（含 gvs.yml、gvs_customer.yml）
+        GVS_BINARY       —— GVS 多帧程序 AppImage 路径
+        GVS_HISTORY_DIR  —— 采集结果历史目录（含日期子目录）
+        TARGET_COPY_DIR  —— 复制到本地中转目录
+    - 相机：
+        CAMERA_PASSWORD / CAMERA_USERNAME / CAMERA_PORT / RTSP_PORT
+        NARROW_CAMERA_HOST / WIDE_CAMERA_HOST
+    - 超时：
+        SERVICE_CHECK_TIMEOUT / MAX_RETRIES / SERVICE_WAIT_TIME
 ================================================================================
 """
 

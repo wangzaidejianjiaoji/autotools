@@ -1,3 +1,20 @@
+"""
+作用：遍历指定目录下所有子目录，识别属于无人机拍摄分组（文件名带 wide_capture、
+     命名形如 NN.NNNN_p…t…z…_wide_capture）的 .jpg/.json 文件，并把成对的（同组
+     同时存在 jpg 和 json 的）复制到该目录下的 drone/ 子文件夹，便于集中处理。
+用法：
+    python move_drone_files.py
+    运行后按提示输入要遍历的根目录路径即可。
+关键参数/变量：
+    source_path            用户在运行时输入的遍历根目录。
+    drone_folder           在 source_path 下创建的 'drone' 子目录（目标收集位置）。
+    get_group_key()        正则 r'(\d{2}\.\d{4}_p[\d.]+t[\d.]+z[\d.]+_wide_capture)'
+                           用来提取分组键，把同名组内的 jpg/json 聚合到一起。
+    is_drone_file()        判断条件：后缀 _drone.jpg/_drone.json，或含 'wide_capture' 的 .jpg。
+    has_jpg / has_json     只有成对存在的分组才执行复制；只拷贝文件（shutil.copy2），
+                           不移动，已存在的同名文件会跳过。
+"""
+
 import os
 import shutil
 import re

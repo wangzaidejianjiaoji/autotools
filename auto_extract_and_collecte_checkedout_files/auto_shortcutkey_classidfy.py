@@ -1,3 +1,38 @@
+"""
+作用：
+    基于 OpenCV 的图像快捷键人工分类工具（GUI）。逐张打开目录下的图片（及其同名
+    labelme JSON 标注），按快捷键把图片+JSON 复制到对应类别子目录中：
+    1=drone、2=similar_Fixed_Object_False_Alarm、3=ufo、4=bird、5=plane、6=uao。
+    操作记录全部追加写入 input_path/classification.log。
+
+用法：
+    python auto_shortcutkey_classidfy.py
+    （脚本启动后会交互式提示输入图像目录路径；输入 q 退出）
+
+关键参数：
+    - input_path：交互式输入的图像目录路径（必填）；输入 q 退出
+    - start_image_name：可选，从指定图片名开始浏览（不填则从第一张开始）
+    - max_width / max_height：resize_image_to_fit_screen 默认 1600x900
+    - min_width / min_height：屏幕最小分辨率默认 1280x720（小于则放大）
+    - window_name：OpenCV 窗口名 'Image Classification'
+    - 类别映射 category_map：
+        '1' -> drone
+        '2' -> similar_Fixed_Object_False_Alarm
+        '3' -> ufo
+        '4' -> bird
+        '5' -> plane
+        '6' -> uao
+    - 快捷键：
+        * 1~6   —— 分类到对应类别子目录
+        * a     —— 上一张
+        * d     —— 下一张
+        * h     —— 切换标注框显示
+        * ESC   —— 退出
+    - 输出目录结构：{image 父目录}/{image 所在目录名}_classidfy/<类别子目录>
+    - 日志文件：input_path/classification.log（追加写入）
+    - 图片格式支持：.jpg / .jpeg / .png / .bmp / .tiff
+"""
+
 import cv2
 import json
 import os

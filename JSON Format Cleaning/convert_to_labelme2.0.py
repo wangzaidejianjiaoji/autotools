@@ -1,5 +1,16 @@
-import json
-import os
+"""
+作用：convert_to_labelme.py 的批量版本。支持传入单个 JSON 文件或包含多个 JSON 的目录，
+      对每个 JSON（每帧含 x1,y1,x2,y2,confidence）转换为 labelme 格式单帧矩形框 json，
+      并在与输入同级目录下创建与 json 同名的子目录存放输出。
+用法：python convert_to_labelme2.0.py
+      运行后按提示输入 JSON 文件路径或目录路径。
+关键参数：
+  - input_path (交互输入)：单个 JSON 文件路径或包含 JSON 的目录路径
+  - output_dir：对每个 JSON 自动生成 <input_dir>/<json_basename> 作为输出目录
+  - image_width / image_height：尝试读取 <output_dir>/<base_name>_00000.jpg 获取真实分辨率，
+    失败则使用默认 1920x1080
+  - label：固定为 "drone"，shape_type 固定为 "rectangle"，命名格式为 "<base>_<五位帧号>.json"
+"""
 
 try:
     from PIL import Image

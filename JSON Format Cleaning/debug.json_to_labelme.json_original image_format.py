@@ -1,7 +1,17 @@
-import os
-import glob
-import sys
-import json
+"""
+作用：与 debug.json_to_labelme.json_format.py 类似，但额外增加"先重命名再转换"的两步流程。
+      第一步把文件名末尾 "_drone" / "_speckle" 这段下划线后缀去掉，使 json 与原图同名；
+      第二步将原 debug.json 转为标准 labelme json 格式，label 取 classification_ID。
+用法：python "debug.json_to_labelme.json_original image_format.py" [目录路径]
+      也可不带参数运行，按交互提示输入目录路径。
+关键参数：
+  - dir_path (位置参数 / 交互输入)：待处理的根目录（仅处理顶层 *.json，不递归）
+  - 重命名规则：去掉文件名最后一个下划线之后为 "drone" 或 "speckle" 的后缀
+  - 已处理判定：若任一 json 已含 shapes[].points 字段则跳过转换步骤
+  - imagePath：原 .json 名替换为 .jpg
+  - imageHeight / imageWidth：读取 data["ImgH"] / data["ImgW"]
+  - points：rect=[x,y,w,h] 转为 [[x,y],[x+w,y+h]]；shape_type=rectangle
+"""
 
 def batch_rename_json_files(dir_path):
     # 检查目录是否存在

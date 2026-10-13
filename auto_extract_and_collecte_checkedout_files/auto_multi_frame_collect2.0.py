@@ -1,3 +1,28 @@
+"""
+作用：
+    多帧图片提取工具 v10（快速直方图版）。在 v8 时间差匹配基础上，改为基于 HSV 直方图
+    相关性（cv2.compareHist + HISTCMP_CORREL）做图像相似度匹配，预期提速 5~10 倍。
+    流程：解压 7z → 找 ping/pong → 预计算所有 JPG 的直方图特征 → 对每个 JSON
+    找同名 JPG 作为参考图，再用直方图相似度筛选剩余 N-1 张图 → 复制到输出目录。
+
+用法：
+    python auto_multi_frame_collect2.0.py
+    （脚本启动后会交互式提示输入 7z 所在目录、输出目录、每组最大帧数、相似度阈值）
+
+关键参数：
+    - target_dir：交互式输入的 7z 文件所在目录路径
+    - output_dir：交互式输入的输出目录路径，默认 r"D:\\multi-frame_test_set"
+    - max_frames（max_frames_per_group）：每组最大帧数，默认 5
+    - similarity_threshold：直方图相似度阈值（cv2.HISTCMP_CORREL），默认 0.70，
+      范围限制 0.5~0.90
+    - hist_size = (112, 112)：直方图计算前的缩放尺寸
+    - hist_bins = 16：HSV 三通道的 bin 数
+    - 参考图查找优先级：同名 .jpg → 同名 + _speckle/_drone/_narrow_capture/_wide_capture.jpg
+      → 同秒级任意 JPG
+    - 同名重命名：复制到输出目录时若文件名冲突自动追加 _1、_2 ...
+    - 源文件策略：解压后源文件保留
+```
+
 import os
 import shutil
 import py7zr
