@@ -1,3 +1,8 @@
+import sys
+import os
+import glob
+import json
+
 """
 作用：将 debug.json（包含 DetbyStatus.real 中 rect=[x,y,w,h] 的检测结果以及 ImgH/ImgW）
       转换为标准 labelme 格式（version/flags/shapes/imagePath/imageData/imageHeight/imageWidth），

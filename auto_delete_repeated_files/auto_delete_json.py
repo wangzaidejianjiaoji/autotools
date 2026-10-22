@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 """
 作用：递归删除指定目录及其所有子目录下的 .json 文件。
 

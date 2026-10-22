@@ -1,3 +1,8 @@
+import sys
+import os
+import glob
+import json
+
 """
 作用：与 debug.json_to_labelme.json_format.py 类似，但额外增加"先重命名再转换"的两步流程。
       第一步把文件名末尾 "_drone" / "_speckle" 这段下划线后缀去掉，使 json 与原图同名；
