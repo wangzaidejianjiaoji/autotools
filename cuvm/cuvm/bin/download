@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+
+# CUDA 下载脚本
+# 该脚本负责从 NVIDIA 官方网站下载指定版本的 CUDA、cuDNN 和 TensorRT
+
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# 加载工具函数
+source "$PROJECT_DIR/lib/utils.sh"
+
+# 加载配置
+load_config "$PROJECT_DIR/config/cuvm.yaml"
+
+# 打印使用说明
+usage() {
+  echo "用法: download [组件] [版本] [选项]"
+  echo ""
+  echo "组件:"
+  echo "  cuda      下载 CUDA"
+  echo "  cudnn     下载 cuDNN"
+  echo "  tensorrt  下载 TensorRT"
+  echo ""
+  echo "选项:"
+  echo "  --cuda-version <version>  指定 CUDA 版本（仅对 cuDNN 和 TensorRT 有效）"
+  echo ""
+  echo "示例:"
+  echo "  ./download cuda 11.8"
+  echo "  ./download cudnn 8.9.7 --cuda-version 11.8"
+  echo "  ./download tensorrt 8.6.1 --cuda-version 11.8"
+}
+
+# 下载 CUDA
+download_cuda() {
+  local version="$1"
+  local url_template=$(awk '/cuda:/ {getline; gsub(/[{}]/, ""); print $2}' "$PROJECT_DIR/config/cuvm.yaml")
+  local url=$(echo "$url_template" | sed "s/{version}/$version/g")
+  local filename="cuda_${version}_linux.run"
+  local filepath="$CUVB_DOWNLOADS_DIR/$filename"
+  
+  print_info "正在下载 CUDA $version..."
+  
+  # 检查文件是否已存在
+  if [[ -f "$filepath" ]]; then
+    print_info "CUDA $version 已存在于 $filepath"
+    return 0
+  fi
+  
+  # 下载文件
+  if command_exists wget; then
+    wget -O "$filepath" "$url"
+  elif command_exists curl; then
+    curl -L -o "$filepath" "$url"
+  else
+    print_error "错误：未找到 wget 或 curl"
+    return 1
+  fi
+  
+  # 检查下载是否成功
+  if [[ $? -eq 0 ]]; then
+    print_info "CUDA $version 下载成功到 $filepath"
+  else
+    print_error "CUDA $version 下载失败"
+    return 1
+  fi
+}
+
+# 下载 cuDNN
+download_cudnn() {
+  local version="$1"
+  local cuda_version="$2"
+  local url_template=$(awk '/cudnn:/ {getline; gsub(/[{}]/, ""); print $2}' "$PROJECT_DIR/config/cuvm.yaml")
+  local url=$(echo "$url_template" | sed "s/{version}/$version/g" | sed "s/{cuda_version}/$cuda_version/g")
+  local filename="cudnn-linux-x86_64-${version}_cuda${cuda_version}_-archive.tar.xz"
+  local filepath="$CUVB_DOWNLOADS_DIR/$filename"
+  
+  print_info "正在下载 cuDNN $version for CUDA $cuda_version..."
+  
+  # 检查文件是否已存在
+  if [[ -f "$filepath" ]]; then
+    print_info "cuDNN $version for CUDA $cuda_version 已存在于 $filepath"
+    return 0
+  fi
+  
+  # 注意：cuDNN 需要登录 NVIDIA 账户才能下载，这里仅作为示例
+  # 实际实现需要处理身份验证
+  print_warning "警告：cuDNN 下载需要 NVIDIA 账户认证，这里仅作为示例"
+  print_warning "请手动从 https://developer.nvidia.com/rdp/cudnn-archive 下载"
+  
+  # 创建一个占位符文件
+  touch "$filepath"
+  print_info "已创建 cuDNN 占位符文件: $filepath"
+}
+
+# 下载 TensorRT
+download_tensorrt() {
+  local version="$1"
+  local cuda_version="$2"
+  local url_template=$(awk '/tensorrt:/ {getline; gsub(/[{}]/, ""); print $2}' "$PROJECT_DIR/config/cuvm.yaml")
+  local url=$(echo "$url_template" | sed "s/{version}/$version/g" | sed "s/{cuda_version}/$cuda_version/g")
+  local filename="TensorRT-${version}-Linux.x86_64-gnu.cuda-${cuda_version}.tar.gz"
+  local filepath="$CUVB_DOWNLOADS_DIR/$filename"
+  
+  print_info "正在下载 TensorRT $version for CUDA $cuda_version..."
+  
+  # 检查文件是否已存在
+  if [[ -f "$filepath" ]]; then
+    print_info "TensorRT $version for CUDA $cuda_version 已存在于 $filepath"
+    return 0
+  fi
+  
+  # 注意：TensorRT 也需要登录 NVIDIA 账户才能下载，这里仅作为示例
+  # 实际实现需要处理身份验证
+  print_warning "警告：TensorRT 下载需要 NVIDIA 账户认证，这里仅作为示例"
+  print_warning "请手动从 https://developer.nvidia.com/nvidia-tensorrt-download 下载"
+  
+  # 创建一个占位符文件
+  touch "$filepath"
+  print_info "已创建 TensorRT 占位符文件: $filepath"
+}
+
+# 解析命令行参数
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 1
+fi
+
+COMPONENT="$1"
+shift
+
+case "$COMPONENT" in
+  cuda)
+    VERSION="$1"
+    if [[ -z "$VERSION" ]]; then
+      print_error "错误：请指定 CUDA 版本"
+      usage
+      exit 1
+    fi
+    download_cuda "$VERSION"
+    ;;
+    
+  cudnn)
+    VERSION="$1"
+    CUDA_VERSION=""
+    shift
+    
+    # 解析选项
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --cuda-version)
+          CUDA_VERSION="$2"
+          shift 2
+          ;;
+        *)
+          print_error "未知选项: $1"
+          usage
+          exit 1
+          ;;
+      esac
+    done
+    
+    if [[ -z "$VERSION" ]]; then
+      print_error "错误：请指定 cuDNN 版本"
+      usage
+      exit 1
+    fi
+    
+    if [[ -z "$CUDA_VERSION" ]]; then
+      print_error "错误：请指定 CUDA 版本"
+      usage
+      exit 1
+    fi
+    
+    download_cudnn "$VERSION" "$CUDA_VERSION"
+    ;;
+    
+  tensorrt)
+    VERSION="$1"
+    CUDA_VERSION=""
+    shift
+    
+    # 解析选项
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --cuda-version)
+          CUDA_VERSION="$2"
+          shift 2
+          ;;
+        *)
+          print_error "未知选项: $1"
+          usage
+          exit 1
+          ;;
+      esac
+    done
+    
+    if [[ -z "$VERSION" ]]; then
+      print_error "错误：请指定 TensorRT 版本"
+      usage
+      exit 1
+    fi
+    
+    if [[ -z "$CUDA_VERSION" ]]; then
+      print_error "错误：请指定 CUDA 版本"
+      usage
+      exit 1
+    fi
+    
+    download_tensorrt "$VERSION" "$CUDA_VERSION"
+    ;;
+    
+  *)
+    print_error "未知组件: $COMPONENT"
+    usage
+    exit 1
+    ;;
+esac

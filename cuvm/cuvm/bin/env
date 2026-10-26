@@ -1,0 +1,317 @@
+#!/usr/bin/env bash
+
+# CUDA 环境变量设置脚本
+# 该脚本负责设置 CUDA、cuDNN 和 TensorRT 的环境变量
+
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}"\)" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# 加载工具函数
+source "$PROJECT_DIR/lib/utils.sh"
+
+# 加载配置
+load_config "$PROJECT_DIR/config/cuvm.yaml"
+
+# 打印使用说明
+usage() {
+  echo "用法: env [组件] [版本] [操作]"
+  echo ""
+  echo "组件:"
+  echo "  cuda      设置 CUDA 环境变量"
+  echo "  cudnn     设置 cuDNN 环境变量"
+  echo "  tensorrt  设置 TensorRT 环境变量"
+  echo ""
+  echo "操作:"
+  echo "  activate  激活环境变量"
+  echo "  deactivate  取消环境变量"
+  echo ""
+  echo "示例:"
+  echo "  ./env cuda 11.8 activate"
+  echo "  ./env cudnn 8.9.7 activate"
+  echo "  ./env tensorrt 8.6.1 activate"
+}
+
+# 激活 CUDA 环境变量
+activate_cuda() {
+  local version="$1"
+  local cuda_path="$CUVB_VERSIONS_DIR/cuda-$version"
+  
+  # 检查安装目录是否存在
+  if [[ ! -d "$cuda_path" ]]; then
+    print_error "错误：未找到 CUDA $version 的安装目录 $cuda_path"
+    print_error "请先安装 CUDA $version"
+    return 1
+  fi
+  
+  print_info "正在激活 CUDA $version 环境变量..."
+  
+  # 设置环境变量
+  export PATH="$cuda_path/bin:$PATH"
+  export LD_LIBRARY_PATH="$cuda_path/lib64:$LD_LIBRARY_PATH"
+  export CUDA_HOME="$cuda_path"
+  
+  # 创建符号链接（如果可能）
+  if ln -sf "$cuda_path" "$CUVB_CUDA_SYMLINK" 2>/dev/null; then
+    print_info "已在 $CUVB_CUDA_SYMLINK 创建符号链接"
+  else
+    print_warning "注意：无法在 $CUVB_CUDA_SYMLINK 创建符号链接（权限被拒绝）"
+    print_info "您可以手动将 CUDA_HOME 设置为 $cuda_path"
+  fi
+  
+  print_info "CUDA $version 环境变量已激活"
+  print_info "PATH: $PATH"
+  print_info "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+  print_info "CUDA_HOME: $CUDA_HOME"
+}
+
+# 激活 cuDNN 环境变量
+activate_cudnn() {
+  local version="$1"
+  local cuda_version=""  # 需要从 CUDA_HOME 推断
+  
+  # 从 CUDA_HOME 推断 CUDA 版本
+  if [[ -n "$CUDA_HOME" ]]; then
+    cuda_version=$(basename "$CUDA_HOME" | sed 's/^cuda-//')
+  else
+    print_error "错误：未设置 CUDA_HOME，请先激活 CUDA 环境"
+    return 1
+  fi
+  
+  local cudnn_path="$CUVB_VERSIONS_DIR/cudnn-$version-cuda-$cuda_version"
+  
+  # 检查安装目录是否存在
+  if [[ ! -d "$cudnn_path" ]]; then
+    print_error "错误：未找到 cuDNN $version for CUDA $cuda_version 的安装目录 $cudnn_path"
+    print_error "请先安装 cuDNN $version for CUDA $cuda_version"
+    return 1
+  fi
+  
+  print_info "正在激活 cuDNN $version for CUDA $cuda_version 环境变量..."
+  
+  # 设置环境变量
+  export LD_LIBRARY_PATH="$cudnn_path/lib64:$LD_LIBRARY_PATH"
+  
+  print_info "cuDNN $version for CUDA $cuda_version 环境变量已激活"
+  print_info "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+}
+
+# 激活 TensorRT 环境变量
+activate_tensorrt() {
+  local version="$1"
+  local cuda_version=""  # 需要从 CUDA_HOME 推断
+  
+  # 从 CUDA_HOME 推断 CUDA 版本
+  if [[ -n "$CUDA_HOME" ]]; then
+    cuda_version=$(basename "$CUDA_HOME" | sed 's/^cuda-//')
+  else
+    print_error "错误：未设置 CUDA_HOME，请先激活 CUDA 环境"
+    return 1
+  fi
+  
+  local tensorrt_path="$CUVB_VERSIONS_DIR/tensorrt-$version-cuda-$cuda_version"
+  
+  # 检查安装目录是否存在
+  if [[ ! -d "$tensorrt_path" ]]; then
+    print_error "错误：未找到 TensorRT $version for CUDA $cuda_version 的安装目录 $tensorrt_path"
+    print_error "请先安装 TensorRT $version for CUDA $cuda_version"
+    return 1
+  fi
+  
+  print_info "正在激活 TensorRT $version for CUDA $cuda_version 环境变量..."
+  
+  # 设置环境变量
+  export PATH="$tensorrt_path/bin:$PATH"
+  export LD_LIBRARY_PATH="$tensorrt_path/lib:$LD_LIBRARY_PATH"
+  
+  print_info "TensorRT $version for CUDA $cuda_version 环境变量已激活"
+  print_info "PATH: $PATH"
+  print_info "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+}
+
+# 取消 CUDA 环境变量
+deactivate_cuda() {
+  local version="$1"
+  local cuda_path="$CUVB_VERSIONS_DIR/cuda-$version"
+  
+  print_info "正在取消 CUDA $version 环境变量..."
+  
+  # 从 PATH 中移除 CUDA 路径
+  PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$cuda_path/bin" | tr '\n' ':' | sed 's/:$//')
+  
+  # 从 LD_LIBRARY_PATH 中移除 CUDA 路径
+  LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | tr ':' '\n' | grep -v "$cuda_path/lib64" | tr '\n' ':' | sed 's/:$//')
+  
+  # 取消 CUDA_HOME
+  unset CUDA_HOME
+  
+  # 删除符号链接（如果是我们创建的）
+  if [[ -L "$CUVB_CUDA_SYMLINK" ]]; then
+    local target=$(readlink "$CUVB_CUDA_SYMLINK")
+    if [[ "$target" == "$cuda_path" ]]; then
+      rm -f "$CUVB_CUDA_SYMLINK"
+      print_info "已删除符号链接 $CUVB_CUDA_SYMLINK"
+    fi
+  fi
+  
+  print_info "CUDA $version 环境变量已取消"
+}
+
+# 取消 cuDNN 环境变量
+deactivate_cudnn() {
+  local version="$1"
+  local cuda_version=""  # 需要从 CUDA_HOME 推断
+  
+  # 从 CUDA_HOME 推断 CUDA 版本
+  if [[ -n "$CUDA_HOME" ]]; then
+    cuda_version=$(basename "$CUDA_HOME" | sed 's/^cuda-//')
+  else
+    print_error "错误：未设置 CUDA_HOME，请先激活 CUDA 环境"
+    return 1
+  fi
+  
+  local cudnn_path="$CUVB_VERSIONS_DIR/cudnn-$version-cuda-$cuda_version"
+  
+  print_info "正在取消 cuDNN $version for CUDA $cuda_version 环境变量..."
+  
+  # 从 LD_LIBRARY_PATH 中移除 cuDNN 路径
+  LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | tr ':' '\n' | grep -v "$cudnn_path/lib64" | tr '\n' ':' | sed 's/:$//')
+  
+  print_info "cuDNN $version for CUDA $cuda_version 环境变量已取消"
+}
+
+# 取消 TensorRT 环境变量
+deactivate_tensorrt() {
+  local version="$1"
+  local cuda_version=""  # 需要从 CUDA_HOME 推断
+  
+  # 从 CUDA_HOME 推断 CUDA 版本
+  if [[ -n "$CUDA_HOME" ]]; then
+    cuda_version=$(basename "$CUDA_HOME" | sed 's/^cuda-//')
+  else
+    print_error "错误：未设置 CUDA_HOME，请先激活 CUDA 环境"
+    return 1
+  fi
+  
+  local tensorrt_path="$CUVB_VERSIONS_DIR/tensorrt-$version-cuda-$cuda_version"
+  
+  print_info "正在取消 TensorRT $version for CUDA $cuda_version 环境变量..."
+  
+  # 从 PATH 中移除 TensorRT 路径
+  PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$tensorrt_path/bin" | tr '\n' ':' | sed 's/:$//')
+  
+  # 从 LD_LIBRARY_PATH 中移除 TensorRT 路径
+  LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | tr ':' '\n' | grep -v "$tensorrt_path/lib" | tr '\n' ':' | sed 's/:$//')
+  
+  print_info "TensorRT $version for CUDA $cuda_version 环境变量已取消"
+}
+
+# 解析命令行参数
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 1
+fi
+
+COMPONENT="$1"
+shift
+
+case "$COMPONENT" in
+  cuda)
+    VERSION="$1"
+    ACTION="$2"
+    
+    if [[ -z "$VERSION" ]]; then
+      print_error "错误：请指定 CUDA 版本"
+      usage
+      exit 1
+    fi
+    
+    if [[ -z "$ACTION" ]]; then
+      print_error "错误：请指定操作 (activate|deactivate)"
+      usage
+      exit 1
+    fi
+    
+    case "$ACTION" in
+      activate)
+        activate_cuda "$VERSION"
+        ;;
+      deactivate)
+        deactivate_cuda "$VERSION"
+        ;;
+      *)
+        print_error "未知操作: $ACTION"
+        usage
+        exit 1
+        ;;
+    esac
+    ;;
+    
+  cudnn)
+    VERSION="$1"
+    ACTION="$2"
+    
+    if [[ -z "$VERSION" ]]; then
+      print_error "错误：请指定 cuDNN 版本"
+      usage
+      exit 1
+    fi
+    
+    if [[ -z "$ACTION" ]]; then
+      print_error "错误：请指定操作 (activate|deactivate)"
+      usage
+      exit 1
+    fi
+    
+    case "$ACTION" in
+      activate)
+        activate_cudnn "$VERSION"
+        ;;
+      deactivate)
+        deactivate_cudnn "$VERSION"
+        ;;
+      *)
+        print_error "未知操作: $ACTION"
+        usage
+        exit 1
+        ;;
+    esac
+    ;;
+    
+  tensorrt)
+    VERSION="$1"
+    ACTION="$2"
+    
+    if [[ -z "$VERSION" ]]; then
+      print_error "错误：请指定 TensorRT 版本"
+      usage
+      exit 1
+    fi
+    
+    if [[ -z "$ACTION" ]]; then
+      print_error "错误：请指定操作 (activate|deactivate)"
+      usage
+      exit 1
+    fi
+    
+    case "$ACTION" in
+      activate)
+        activate_tensorrt "$VERSION"
+        ;;
+      deactivate)
+        deactivate_tensorrt "$VERSION"
+        ;;
+      *)
+        print_error "未知操作: $ACTION"
+        usage
+        exit 1
+        ;;
+    esac
+    ;;
+    
+  *)
+    print_error "未知组件: $COMPONENT"
+    usage
+    exit 1
+    ;;
+esac

@@ -1,0 +1,38 @@
+# cuvm 配置文件
+
+# 默认目录设置
+directories:
+  # 下载文件存储目录
+  downloads: "~/.cuvm/downloads"
+  # 安装版本存储目录
+  versions: "~/.cuvm/versions"
+  # CUDA 符号链接目录
+  cuda_symlink: "/usr/local/cuda"
+
+# URL 模板设置
+urls:
+  # CUDA 下载 URL 模板
+  cuda: "https://developer.download.nvidia.com/compute/cuda/{version}/local_installers/cuda_{version}_linux.run"
+  # cuDNN 下载 URL 模板（需要登录）
+  cudnn: "https://developer.nvidia.com/compute/cudnn/{version}/cuda-{cuda_version}/cudnn-linux-x86_64-{version}_cuda{cuda_version}-archive.tar.xz"
+  # TensorRT 下载 URL 模板（需要登录）
+  tensorrt: "https://developer.nvidia.com/compute/tensorrt/{version}/cuda-{cuda_version}/TensorRT-{version}-Linux.x86_64-gnu.cuda-{cuda_version}.tar.gz"
+
+# 版本映射设置
+versions:
+  # CUDA 和 cuDNN 的版本映射 (1对1)
+  cudnn_mapping:
+    "11.8": "8.9.7"
+    "12.0": "8.9.7"
+    "12.1": "8.9.7"
+  
+  # CUDA 和 TensorRT 的版本映射 (1对多)
+  tensorrt_mapping:
+    "11.8": 
+      - "8.6.1"
+      - "8.5.3"
+      - "8.4.3"
+    "12.0":
+      - "8.6.1"
+    "12.1":
+      - "8.6.1"

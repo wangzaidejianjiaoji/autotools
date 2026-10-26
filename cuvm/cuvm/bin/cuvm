@@ -1,0 +1,437 @@
+#!/usr/bin/env bash
+
+# cuvm - CUDA 版本管理器
+# 作者: Your Name
+# 许可证: MIT
+
+# 出现任何错误时退出
+set -e
+
+# 获取脚本所在目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# 加载工具函数
+source "$PROJECT_DIR/lib/utils.sh"
+
+# 加载配置
+load_config "$PROJECT_DIR/config/cuvm.yaml"
+
+# 打印使用说明的函数
+usage() {
+  echo "用法: cuvm [命令] [选项]"
+  echo ""
+  echo "命令:"
+  echo "  install <cuda_version>     安装 CUDA 版本"
+  echo "  use <cuda_version>         切换到 CUDA 版本"
+  echo "  uninstall <cuda_version>   卸载 CUDA 版本"
+  echo "  list                       列出已安装的 CUDA 版本"
+  echo "  current                    显示当前 CUDA 版本"
+  echo "  install-cudnn <version>    安装 cuDNN 版本"
+  echo "  use-cudnn <version>        切换到 cuDNN 版本"
+  echo "  uninstall-cudnn <version>  卸载 cuDNN 版本"
+  echo "  list-cudnn                 列出已安装的 cuDNN 版本"
+  echo "  install-tensorrt <version> 安装 TensorRT 版本"
+  echo "  use-tensorrt <version>     切换到 TensorRT 版本"
+  echo "  uninstall-tensorrt <version> 卸载 TensorRT 版本"
+  echo "  list-tensorrt              列出已安装的 TensorRT 版本"
+  echo "  list-compatible-tensorrt   列出与当前 CUDA 版本兼容的 TensorRT 版本"
+  echo ""
+  echo "选项:"
+  echo "  --with-cudnn               安装与 CUDA 匹配的 cuDNN"
+  echo "  --with-tensorrt <version>  安装特定的 TensorRT 版本"
+}
+
+# 安装 CUDA 的函数
+install_cuda() {
+  local version="$1"
+  local cuda_path="$CUVB_VERSIONS_DIR/cuda-$version"
+  
+  # 检查是否已安装该版本
+  if [[ -d "$cuda_path" ]]; then
+    print_info "CUDA $version 已安装在 $cuda_path"
+    return 0
+  fi
+  
+  print_info "正在安装 CUDA $version..."
+  
+  # 调用下载脚本
+  "$SCRIPT_DIR/download" cuda "$version"
+  
+  # 调用安装脚本
+  "$SCRIPT_DIR/install" cuda "$version"
+  
+  print_info "CUDA $version 安装成功"
+}
+
+# 切换到 CUDA 版本的函数
+use_cuda() {
+  local version="$1"
+  
+  print_info "正在切换到 CUDA $version..."
+  
+  # 调用环境变量设置脚本
+  "$SCRIPT_DIR/env" cuda "$version" activate
+  
+  print_info "现在使用 CUDA $version"
+}
+
+# 卸载 CUDA 版本的函数
+uninstall_cuda() {
+  local version="$1"
+  local cuda_path="$CUVB_VERSIONS_DIR/cuda-$version"
+  
+  # 检查版本是否已安装
+  if [[ ! -d "$cuda_path" ]]; then
+    print_error "CUDA $version 未安装。"
+    return 1
+  fi
+  
+  print_info "正在卸载 CUDA $version..."
+  
+  # 调用环境变量设置脚本取消环境变量
+  "$SCRIPT_DIR/env" cuda "$version" deactivate 2>/dev/null || true
+  
+  # 删除安装目录
+  rm -rf "$cuda_path"
+  
+  print_info "CUDA $version 卸载成功"
+}
+
+# 列出已安装 CUDA 版本的函数
+list_cuda() {
+  print_info "已安装的 CUDA 版本："
+  for dir in "$CUVB_VERSIONS_DIR"/cuda-*; do
+    if [[ -d "$dir" ]]; then
+      basename "$dir" | sed 's/^cuda-//'
+    fi
+  done
+}
+
+# 显示当前 CUDA 版本的函数
+current_cuda() {
+  # 检查是否存在指向 CUDA 目录的符号链接
+  if [[ -L "$CUVB_CUDA_SYMLINK" ]]; then
+    local target=$(readlink "$CUVB_CUDA_SYMLINK")
+    basename "$target" | sed 's/^cuda-//'
+  else
+    # 检查 CUDA_HOME 环境变量
+    if [[ -n "$CUDA_HOME" ]]; then
+      basename "$CUDA_HOME" | sed 's/^cuda-//'
+    else
+      echo "当前没有激活的 CUDA 版本"
+    fi
+  fi
+}
+
+# 安装 cuDNN 的函数
+install_cudnn() {
+  local version="$1"
+  # 获取当前激活的 CUDA 版本
+  local cuda_version=$(current_cuda)
+  local cudnn_path="$CUVB_VERSIONS_DIR/cudnn-$version-cuda-$cuda_version"
+  
+  # 检查是否有激活的 CUDA 版本
+  if [[ -z "$cuda_version" ]] || [[ "$cuda_version" == "当前没有激活的 CUDA 版本" ]]; then
+    print_error "当前没有激活的 CUDA 版本。请先使用一个 CUDA 版本。"
+    return 1
+  fi
+  
+  # 检查是否已安装该版本
+  if [[ -d "$cudnn_path" ]]; then
+    print_info "cuDNN $version for CUDA $cuda_version 已安装在 $cudnn_path"
+    return 0
+  fi
+  
+  print_info "正在安装 cuDNN $version for CUDA $cuda_version..."
+  
+  # 调用下载脚本
+  "$SCRIPT_DIR/download" cudnn "$version" --cuda-version "$cuda_version"
+  
+  # 调用安装脚本
+  "$SCRIPT_DIR/install" cudnn "$version" --cuda-version "$cuda_version"
+  
+  print_info "cuDNN $version for CUDA $cuda_version 安装成功"
+}
+
+# 切换到 cuDNN 版本的函数
+use_cudnn() {
+  local version="$1"
+  
+  print_info "正在切换到 cuDNN $version..."
+  
+  # 调用环境变量设置脚本
+  "$SCRIPT_DIR/env" cudnn "$version" activate
+  
+  print_info "现在使用 cuDNN $version"
+}
+
+# 卸载 cuDNN 版本的函数
+uninstall_cudnn() {
+  local version="$1"
+  # 获取当前激活的 CUDA 版本
+  local cuda_version=$(current_cuda)
+  local cudnn_path="$CUVB_VERSIONS_DIR/cudnn-$version-cuda-$cuda_version"
+  
+  # 检查是否有激活的 CUDA 版本
+  if [[ -z "$cuda_version" ]] || [[ "$cuda_version" == "当前没有激活的 CUDA 版本" ]]; then
+    print_error "当前没有激活的 CUDA 版本。"
+    return 1
+  fi
+  
+  # 检查版本是否已安装
+  if [[ ! -d "$cudnn_path" ]]; then
+    print_error "cuDNN $version for CUDA $cuda_version 未安装。"
+    return 1
+  fi
+  
+  print_info "正在卸载 cuDNN $version for CUDA $cuda_version..."
+  
+  # 调用环境变量设置脚本取消环境变量
+  "$SCRIPT_DIR/env" cudnn "$version" deactivate 2>/dev/null || true
+  
+  # 删除安装目录
+  rm -rf "$cudnn_path"
+  
+  print_info "cuDNN $version for CUDA $cuda_version 卸载成功"
+}
+
+# 列出已安装 cuDNN 版本的函数
+list_cudnn() {
+  # 获取当前激活的 CUDA 版本
+  local cuda_version=$(current_cuda)
+  # 检查是否有激活的 CUDA 版本
+  if [[ -z "$cuda_version" ]] || [[ "$cuda_version" == "当前没有激活的 CUDA 版本" ]]; then
+    print_error "当前没有激活的 CUDA 版本。"
+    return 1
+  fi
+  
+  print_info "已安装的 cuDNN 版本 for CUDA $cuda_version："
+  for dir in "$CUVB_VERSIONS_DIR"/cudnn-*cuda-$cuda_version; do
+    if [[ -d "$dir" ]]; then
+      basename "$dir" | sed 's/^cudnn-//' | sed 's/-cuda-.*$//'
+    fi
+  done
+}
+
+# 安装 TensorRT 的函数
+install_tensorrt() {
+  local version="$1"
+  # 获取当前激活的 CUDA 版本
+  local cuda_version=$(current_cuda)
+  local tensorrt_path="$CUVB_VERSIONS_DIR/tensorrt-$version-cuda-$cuda_version"
+  
+  # 检查是否有激活的 CUDA 版本
+  if [[ -z "$cuda_version" ]] || [[ "$cuda_version" == "当前没有激活的 CUDA 版本" ]]; then
+    print_error "当前没有激活的 CUDA 版本。请先使用一个 CUDA 版本。"
+    return 1
+  fi
+  
+  # 检查是否已安装该版本
+  if [[ -d "$tensorrt_path" ]]; then
+    print_info "TensorRT $version for CUDA $cuda_version 已安装在 $tensorrt_path"
+    return 0
+  fi
+  
+  print_info "正在安装 TensorRT $version for CUDA $cuda_version..."
+  
+  # 调用下载脚本
+  "$SCRIPT_DIR/download" tensorrt "$version" --cuda-version "$cuda_version"
+  
+  # 调用安装脚本
+  "$SCRIPT_DIR/install" tensorrt "$version" --cuda-version "$cuda_version"
+  
+  print_info "TensorRT $version for CUDA $cuda_version 安装成功"
+}
+
+# 切换到 TensorRT 版本的函数
+use_tensorrt() {
+  local version="$1"
+  
+  print_info "正在切换到 TensorRT $version..."
+  
+  # 调用环境变量设置脚本
+  "$SCRIPT_DIR/env" tensorrt "$version" activate
+  
+  print_info "现在使用 TensorRT $version"
+}
+
+# 卸载 TensorRT 版本的函数
+uninstall_tensorrt() {
+  local version="$1"
+  # 获取当前激活的 CUDA 版本
+  local cuda_version=$(current_cuda)
+  local tensorrt_path="$CUVB_VERSIONS_DIR/tensorrt-$version-cuda-$cuda_version"
+  
+  # 检查是否有激活的 CUDA 版本
+  if [[ -z "$cuda_version" ]] || [[ "$cuda_version" == "当前没有激活的 CUDA 版本" ]]; then
+    print_error "当前没有激活的 CUDA 版本。"
+    return 1
+  fi
+  
+  # 检查版本是否已安装
+  if [[ ! -d "$tensorrt_path" ]]; then
+    print_error "TensorRT $version for CUDA $cuda_version 未安装。"
+    return 1
+  fi
+  
+  print_info "正在卸载 TensorRT $version for CUDA $cuda_version..."
+  
+  # 调用环境变量设置脚本取消环境变量
+  "$SCRIPT_DIR/env" tensorrt "$version" deactivate 2>/dev/null || true
+  
+  # 删除安装目录
+  rm -rf "$tensorrt_path"
+  
+  print_info "TensorRT $version for CUDA $cuda_version 卸载成功"
+}
+
+# 列出已安装 TensorRT 版本的函数
+list_tensorrt() {
+  # 获取当前激活的 CUDA 版本
+  local cuda_version=$(current_cuda)
+  # 检查是否有激活的 CUDA 版本
+  if [[ -z "$cuda_version" ]] || [[ "$cuda_version" == "当前没有激活的 CUDA 版本" ]]; then
+    print_error "当前没有激活的 CUDA 版本。"
+    return 1
+  fi
+  
+  print_info "已安装的 TensorRT 版本 for CUDA $cuda_version："
+  for dir in "$CUVB_VERSIONS_DIR"/tensorrt-*cuda-$cuda_version; do
+    if [[ -d "$dir" ]]; then
+      basename "$dir" | sed 's/^tensorrt-//' | sed 's/-cuda-.*$//'
+    fi
+  done
+}
+
+# 列出与当前 CUDA 版本兼容的 TensorRT 版本
+list_compatible_tensorrt() {
+  local cuda_version=$(current_cuda)
+  
+  # 检查是否有激活的 CUDA 版本
+  if [[ -z "$cuda_version" ]] || [[ "$cuda_version" == "当前没有激活的 CUDA 版本" ]]; then
+    print_error "当前没有激活的 CUDA 版本。"
+    return 1
+  fi
+  
+  print_info "与 CUDA $cuda_version 兼容的 TensorRT 版本："
+  get_tensorrt_versions "$cuda_version" "$PROJECT_DIR/config/cuvm.yaml"
+}
+
+# 解析命令行参数
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 1
+fi
+
+COMMAND="$1"
+shift
+
+case "$COMMAND" in
+  install)
+    CUDA_VERSION="$1"
+    shift
+    # 处理选项
+    WITH_CUDNN=false
+    TENSORRT_VERSION=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --with-cudnn)
+          WITH_CUDNN=true
+          shift
+          ;;
+        --with-tensorrt)
+          TENSORRT_VERSION="$2"
+          shift 2
+          ;;
+        *)
+          print_error "未知选项: $1"
+          usage
+          exit 1
+          ;;
+      esac
+    done
+    
+    install_cuda "$CUDA_VERSION"
+    if [[ "$WITH_CUDNN" == true ]]; then
+      # 获取匹配的 cuDNN 版本
+      CUDNN_VERSION=$(get_cudnn_version "$CUDA_VERSION" "$PROJECT_DIR/config/cuvm.yaml")
+      if [[ -n "$CUDNN_VERSION" ]]; then
+        print_info "正在为 CUDA $CUDA_VERSION 安装匹配的 cuDNN $CUDNN_VERSION..."
+        install_cudnn "$CUDNN_VERSION"
+      else
+        print_warning "未找到 CUDA $CUDA_VERSION 对应的 cuDNN 版本，请手动指定"
+      fi
+    fi
+    if [[ -n "$TENSORRT_VERSION" ]]; then
+      print_info "正在为 CUDA $CUDA_VERSION 安装 TensorRT $TENSORRT_VERSION..."
+      install_tensorrt "$TENSORRT_VERSION"
+    fi
+    ;;
+    
+  use)
+    CUDA_VERSION="$1"
+    use_cuda "$CUDA_VERSION"
+    ;;
+    
+  uninstall)
+    CUDA_VERSION="$1"
+    uninstall_cuda "$CUDA_VERSION"
+    ;;
+    
+  list)
+    list_cuda
+    ;;
+    
+  current)
+    current_cuda
+    ;;
+    
+  install-cudnn)
+    CUDNN_VERSION="$1"
+    install_cudnn "$CUDNN_VERSION"
+    ;;
+    
+  use-cudnn)
+    CUDNN_VERSION="$1"
+    use_cudnn "$CUDNN_VERSION"
+    ;;
+    
+  uninstall-cudnn)
+    CUDNN_VERSION="$1"
+    uninstall_cudnn "$CUDNN_VERSION"
+    ;;
+    
+  list-cudnn)
+    list_cudnn
+    ;;
+    
+  install-tensorrt)
+    TENSORRT_VERSION="$1"
+    install_tensorrt "$TENSORRT_VERSION"
+    ;;
+    
+  use-tensorrt)
+    TENSORRT_VERSION="$1"
+    use_tensorrt "$TENSORRT_VERSION"
+    ;;
+    
+  uninstall-tensorrt)
+    TENSORRT_VERSION="$1"
+    uninstall_tensorrt "$TENSORRT_VERSION"
+    ;;
+    
+  list-tensorrt)
+    list_tensorrt
+    ;;
+    
+  list-compatible-tensorrt)
+    list_compatible_tensorrt
+    ;;
+    
+  *)
+    print_error "未知命令: $COMMAND"
+    usage
+    exit 1
+    ;;
+esac
