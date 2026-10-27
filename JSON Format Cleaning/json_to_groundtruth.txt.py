@@ -11,6 +11,11 @@
     （若含 "_YYMMDD_" 子串会被改写为 "_20YYMMDD_"）
 """
 
+import os
+import re
+import glob
+import json
+
 def process_labelme_json(json_path):
     """从labelme格式的JSON文件中提取矩形框的x,y,w,h"""
     with open(json_path, 'r', encoding='utf-8') as f:

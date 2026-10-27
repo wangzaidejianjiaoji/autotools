@@ -11,6 +11,12 @@
   - 文件匹配规则：以 jpg 文件名为基础，匹配同 stem 的 "*.json"（即 <stem>_*.json）作为其关联检测结果
 """
 
+import sys
+import json
+import shutil
+import argparse
+from pathlib import Path
+
 ALLOWED_IDS = {"avata", "drone", "m300", "mavic", "p4"}
 
 

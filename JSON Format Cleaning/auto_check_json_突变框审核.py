@@ -112,9 +112,13 @@ def area_ratio_diff(a, b):
 
 
 def extract_number(name):
-    """提取文件名中的连续数字，用于判断编号连续。"""
-    m = re.search(r"(\d+)", name)
-    return int(m.group(1)) if m else None
+    """提取文件名中最后一组连续数字（帧号），用于判断编号连续。
+
+    文件名形如 20260814_09-58-53.5909__1_drone.engine_FHD_001200.json，
+    开头的日期数字并非帧号，取最后一组数字才是真正的帧编号。
+    """
+    nums = re.findall(r"\d+", name)
+    return int(nums[-1]) if nums else None
 
 
 def group_by_directory(json_paths):
@@ -240,6 +244,7 @@ def main():
         sys.exit(1)
 
     threshold = 2  # shapes 数量 >= 2，即视为含多个框（有问题）
+    radius = 2     # 问题帧前后各保留 2 帧
     matched = []
     single_shape_paths = []
     problem_json_paths = set()
@@ -275,9 +280,9 @@ def main():
         print("未发现框突变。")
 
     if problem_json_paths:
-        output_paths = expand_problem_window(problem_json_paths, all_json_paths, all_img_paths)
+        output_paths = expand_problem_window(problem_json_paths, all_json_paths, all_img_paths, radius)
         output_root, copied = copy_files_to_output(root, output_paths)
-        print(f"\n已输出 {copied} 个文件（问题帧前后各 2 帧的 JSON 与原图）到: {output_root}")
+        print(f"\n已输出 {copied} 个文件（问题帧前后各 {radius} 帧的 JSON 与原图）到: {output_root}")
     else:
         print("\n没有需要输出的问题内容。")
 

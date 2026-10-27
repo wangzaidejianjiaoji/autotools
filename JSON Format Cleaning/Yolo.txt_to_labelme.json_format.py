@@ -9,12 +9,17 @@
   - 路径映射规则：txt 相对路径中 "labels" -> "images"，用于定位同名图片
   - 图片扩展名：jpg/jpeg/png/bmp/tiff/gif 等；不区分大小写匹配
   - 坐标转换：归一化 cx/cy/w/h × (img_width, img_height) 转为绝对像素 [[x1,y1],[x2,y2]]
-  - label：固定为 "bird"，shape_type=rectangle
+  - label (交互输入)：标签名称，直接回车默认 "bird"；shape_type=rectangle
   - imageWidth / imageHeight：自动通过 PIL 读取真实图片尺寸
 """
 
+import os
+import json
 
-def yolo_to_labelme_shapes(yolo_format, img_width, img_height):
+from PIL import Image
+
+
+def yolo_to_labelme_shapes(yolo_format, img_width, img_height, label):
     """
     将YOLO格式转换为Labelme格式的shapes
     YOLO格式: class_id x_center y_center width height (归一化坐标)
@@ -56,7 +61,7 @@ def yolo_to_labelme_shapes(yolo_format, img_width, img_height):
 
         # 创建shape字典
         shape = {
-            "label": "bird",  # 固定为bird
+            "label": label,
             "line_color": None,
             "fill_color": None,
             "points": [
@@ -144,7 +149,7 @@ def get_corresponding_images_dir(txt_path, input_dir):
     return images_dir
 
 
-def convert_yolo_to_labelme(input_dir):
+def convert_yolo_to_labelme(input_dir, label):
     """
     主转换函数
     """
@@ -197,7 +202,7 @@ def convert_yolo_to_labelme(input_dir):
             img_width, img_height = img_dimensions
 
             # 转换YOLO格式到Labelme格式的shapes
-            shapes = yolo_to_labelme_shapes(yolo_content, img_width, img_height)
+            shapes = yolo_to_labelme_shapes(yolo_content, img_width, img_height, label)
 
             # 如果没有任何标注框，跳过该文件或创建空的shapes列表
             if not shapes:
@@ -246,9 +251,11 @@ def main():
     if not os.path.exists(input_dir):
         print(f"错误: 目录不存在: {input_dir}")
         return
-
+    
+    label = input("输入标签名称 (回车默认 bird): ").strip() or "bird"
+    
     # 执行转换
-    convert_yolo_to_labelme(input_dir)
+    convert_yolo_to_labelme(input_dir, label)
 
 
 if __name__ == "__main__":

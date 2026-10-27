@@ -15,6 +15,10 @@
   - 跳过规则：批量转换时若文件名已含 "fiftyone"（不区分大小写）则跳过
 """
 
+import os
+import json
+from pathlib import Path
+
 
 def labelme_to_fiftyone(labelme_path, output_path=None):
     with open(labelme_path, 'r', encoding='utf-8') as f:

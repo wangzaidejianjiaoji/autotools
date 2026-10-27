@@ -9,11 +9,14 @@
   - output_dir (交互输入)：生成的 labelme json 与 jpg 同目录
   - base_name：取输入 json 的文件名（自动去掉 _ostrack 后缀）
   - 输出命名：<base_name>_<5位帧号>.json / .jpg；imageHeight=1024，imageWidth=1280 硬编码
-  - label：固定为 "drone"，shape_type=rectangle
+  - label (交互输入)：标签名称，直接回车默认 "drone"；shape_type=rectangle
   - 跳过：若目标目录中对应 .jpg 不存在则跳过该帧
 """
 
-def convert_json_to_labelme(input_json_path, output_dir):
+import os
+import json
+
+def convert_json_to_labelme(input_json_path, output_dir, label):
     # 检查输入文件是否存在
     if not os.path.exists(input_json_path):
         print(f"错误: 输入文件 '{input_json_path}' 不存在")
@@ -79,7 +82,7 @@ def convert_json_to_labelme(input_json_path, output_dir):
                 
                 # 创建形状对象
                 shape = {
-                    "label": "drone",  # 固定为drone
+                    "label": label,
                     "line_color": None,
                     "fill_color": None,
                     "points": [
@@ -112,9 +115,10 @@ def main():
     # 使用input()获取用户输入
     input_json_path = input("请输入输入JSON文件路径: ")
     output_dir = input("请输入生成目标目录: ")
+    label = input("输入标签名称 (回车默认 drone): ").strip() or "drone"
     
     print("\n开始转换...")
-    success = convert_json_to_labelme(input_json_path, output_dir)
+    success = convert_json_to_labelme(input_json_path, output_dir, label)
     
     if success:
         print("\n转换成功!")

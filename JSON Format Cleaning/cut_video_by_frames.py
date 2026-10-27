@@ -11,6 +11,10 @@
   - 编码：cv2.VideoWriter_fourcc(*'mp4v')，分辨率与帧率与原视频保持一致
 """
 
+import os
+
+import cv2
+
 
 def cut_video_by_frames():
     """

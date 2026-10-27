@@ -12,6 +12,10 @@
   - 默认输入目录：脚本所在目录下的 labelme_input 子目录
 """
 
+import os
+import json
+import glob
+
 def convert_labelme_to_fiftyone(labelme_json_path):
     with open(labelme_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)

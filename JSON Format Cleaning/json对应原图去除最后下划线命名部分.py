@@ -9,6 +9,10 @@
   - 目标已存在则跳过该文件并打印警告，不会覆盖
 """
 
+import os
+import sys
+import glob
+
 
 def batch_rename_json_files():
     # 获取目录路径（优先使用命令行参数，否则使用用户输入）

@@ -15,6 +15,11 @@
   - 无标注的图片会被跳过，不生成 json
 """
 
+import os
+import json
+
+from PIL import Image
+
 
 def convert_bbox_format(bbox):
     """将[x, y, width, height]格式转换为[[x1, y1], [x2, y2]]格式"""

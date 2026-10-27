@@ -14,6 +14,12 @@
   - 颜色约定：GT 框绿色，预测框红色，叠加显示在原图上
 """
 
+import os
+import json
+import glob
+import shutil
+
+import cv2
 
 # ================================================
 

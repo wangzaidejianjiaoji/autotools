@@ -8,8 +8,11 @@
   - output_dir (交互输入)：生成的 labelme json 输出目录
   - image_width / image_height：尝试读取 <output_dir>/<base_name>_00000.jpg 获取真实分辨率，
     失败则使用默认 1920x1080
-  - label：固定为 "drone"，shape_type 固定为 "rectangle"
+  - label (交互输入)：标签名称，直接回车默认 "drone"；shape_type 固定为 "rectangle"
 """
+
+import os
+import json
 
 try:
     from PIL import Image
@@ -35,7 +38,7 @@ def get_image_size(image_path):
         print(f"警告: 读取图片失败 - {e}，将使用默认分辨率 1920x1080")
         return 1920, 1080
 
-def convert_to_labelme(input_json_path, output_dir):
+def convert_to_labelme(input_json_path, output_dir, label):
     with open(input_json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
@@ -54,7 +57,7 @@ def convert_to_labelme(input_json_path, output_dir):
             "flags": {},
             "shapes": [
                 {
-                    "label": "drone",
+                    "label": label,
                     "line_color": None,
                     "fill_color": None,
                     "points": [
@@ -91,4 +94,7 @@ if __name__ == "__main__":
     
     output_dir = input("输出目录路径: ").strip()
     
-    convert_to_labelme(input_json_path, output_dir)
+    label = input("输入标签名称 (回车默认 drone): ").strip() or "drone"
+    print(f"使用标签: {label}")
+    
+    convert_to_labelme(input_json_path, output_dir, label)

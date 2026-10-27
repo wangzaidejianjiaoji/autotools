@@ -8,11 +8,14 @@
 关键参数：
   - input_dir (交互输入)：根目录，会递归查找所有名为 IR_label.json 的文件
   - exist_list[i]==0：跳过该帧
-  - label：固定为 "bird"
+  - label (交互输入)：标签名称，直接回车默认 "bird"
   - shape_type：固定为 "rectangle"
   - imageHeight / imageWidth：硬编码 512 / 640（红外图像常用分辨率）
   - 输出命名：{seq_num:06d}.json，imagePath 同名 .jpg
 """
+
+import os
+import json
 
 
 def convert_gt_rect_to_points(gt_rect):
@@ -20,7 +23,7 @@ def convert_gt_rect_to_points(gt_rect):
     return [[float(x), float(y)], [float(x + w), float(y + h)]]
 
 
-def process_ir_label(ir_label_path, dir_path):
+def process_ir_label(ir_label_path, dir_path, label):
     with open(ir_label_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
@@ -45,7 +48,7 @@ def process_ir_label(ir_label_path, dir_path):
             "flags": {},
             "shapes": [
                 {
-                    "label": "bird",
+                    "label": label,
                     "line_color": None,
                     "fill_color": None,
                     "points": points,
@@ -83,6 +86,9 @@ def main():
         print(f"错误: 路径不是目录: {input_dir}")
         return
 
+    label = input("输入标签名称 (回车默认 bird): ").strip() or "bird"
+    print(f"使用标签: {label}")
+
     total_dirs = 0
     total_files = 0
 
@@ -90,7 +96,7 @@ def main():
         if "IR_label.json" in files:
             ir_label_path = os.path.join(root, "IR_label.json")
             print(f"\n处理目录: {root}")
-            count = process_ir_label(ir_label_path, root)
+            count = process_ir_label(ir_label_path, root, label)
             total_dirs += 1
             total_files += count
 

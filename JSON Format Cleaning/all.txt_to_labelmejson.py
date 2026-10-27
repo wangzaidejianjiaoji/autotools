@@ -9,7 +9,7 @@
   - start_frame (0 或 1)：起始帧号偏移
   - output_dir (交互输入)：输出 JSON 目录，默认与 txt 同目录
   - image_width / image_height：自动读取首张图片尺寸，失败时使用默认 1280x1024（代码中实际默认 1920x1080）
-  - label：标注类别，固定为 "drone"
+  - label (交互输入)：标注类别，直接回车默认 "drone"
 """
 
 import os
@@ -168,7 +168,8 @@ def main():
         image_width = 1920
         image_height = 1080
     
-    label = "drone"
+    label = input("请输入标注类别（直接回车默认 drone）：").strip() or "drone"
+    print(f"使用标注类别: {label}")
     
     frame_data_list = []
     with open(txt_path, 'r', encoding='utf-8') as f:
